@@ -52,53 +52,53 @@ Each task is written as a checkbox so you can track progress in GitHub.
 
 ## Phase 1 — Database Foundation (Models + Migrations)
 ### 1.1 Enums
-- [ ] Define enums:
-  - [ ] `Role`: CUSTOMER, EMPLOYEE, MANAGER, ADMIN
-  - [ ] `OrderStatus`: CREATED, IN_PROGRESS, READY, OUT_FOR_DELIVERY, DELIVERED, CANCELED, DELAYED, MISSING
-  - [ ] `FulfillmentType`: DELIVERY, PICKUP
-  - [ ] `PickedStatus`: PENDING, PICKED, MISSING
-  - [ ] `StockRequestType`: SET_QUANTITY, ADD_QUANTITY
-  - [ ] `StockRequestStatus`: PENDING, APPROVED, REJECTED
-  - [ ] `CartStatus`: ACTIVE, CHECKED_OUT, ABANDONED
+  - [x] Define enums:
+  - [x] `Role`: CUSTOMER, EMPLOYEE, MANAGER, ADMIN
+  - [x] `OrderStatus`: CREATED, IN_PROGRESS, READY, OUT_FOR_DELIVERY, DELIVERED, CANCELED, DELAYED, MISSING
+  - [x] `FulfillmentType`: DELIVERY, PICKUP
+  - [x] `PickedStatus`: PENDING, PICKED, MISSING
+  - [x] `StockRequestType`: SET_QUANTITY, ADD_QUANTITY
+  - [x] `StockRequestStatus`: PENDING, APPROVED, REJECTED
+  - [x] `CartStatus`: ACTIVE, CHECKED_OUT, ABANDONED
 
 ### 1.2 Models (SQLAlchemy)
-- [ ] User (all fields required)
-- [ ] Address (all fields required)
-- [ ] PaymentToken (provider + token only; required fields)
-- [ ] Category (required)
-- [ ] Product (required + `is_active`)
-- [ ] Branch (required + `is_active`)
-- [ ] Inventory **per branch** (required, unique `(product_id, branch_id)`)
-- [ ] DeliverySlot (required)
-- [ ] Cart (customer only, required)
-- [ ] CartItem (required)
-- [ ] Order (required)
-- [ ] OrderDeliveryDetails (required for delivery)
-- [ ] OrderPickupDetails (required for pickup)
-- [ ] OrderItem (required + snapshots)
-- [ ] StockRequest (required + branch_id)
-- [ ] Audit (required old_value/new_value/context)
+- [x] User (all fields required)
+- [x] Address (all fields required)
+- [x] PaymentToken (provider + token only; required fields)
+- [x] Category (required)
+- [x] Product (required + `is_active`)
+- [x] Branch (required + `is_active`)
+- [x] Inventory **per branch** (required, unique `(product_id, branch_id)`)
+- [x] DeliverySlot (required)
+- [x] Cart (customer only, required)
+- [x] CartItem (required)
+- [x] Order (required)
+- [x] OrderDeliveryDetails (required for delivery)
+- [x] OrderPickupDetails (required for pickup)
+- [x] OrderItem (required + snapshots)
+- [x] StockRequest (required + branch_id)
+- [x] Audit (required old_value/new_value/context)
 
 ### 1.3 Constraints & Indexes
-- [ ] Unique: `users.email`
-- [ ] Unique: `products.sku`
-- [ ] Unique: `(inventory.product_id, inventory.branch_id)`
-- [ ] Indexes:
-  - [ ] products: name, sku, category_id
-  - [ ] orders: user_id, status, created_at
-  - [ ] stock_requests: status, branch_id, created_at
-  - [ ] audit: entity_type, entity_id, actor_user_id, created_at
+- [x] Unique: `users.email`
+- [x] Unique: `products.sku`
+- [x] Unique: `(inventory.product_id, inventory.branch_id)`
+- [x] Indexes:
+  - [x] products: name, sku, category_id
+  - [x] orders: user_id, status, created_at
+  - [x] stock_requests: status, branch_id, created_at
+  - [x] audit: entity_type, entity_id, actor_user_id, created_at
 
 ### 1.4 Alembic
-- [ ] `alembic init`
-- [ ] Create first migration
+- [x] `alembic init`
+- [x] Create first migration
 - [ ] Apply migration to dev DB
 
 ### 1.5 Seed / Bootstrap
-- [ ] Create branches seed:
-  - [ ] "The Warehouse" branch (store its id)
-- [ ] Create delivery slots seed:
-  - [ ] 2-hour windows from 06:00 to 22:00 for each day_of_week
+- [x] Create branches seed:
+  - [x] "The Warehouse" branch (store its id)
+- [x] Create delivery slots seed:
+  - [x] 2-hour windows from 06:00 to 22:00 for each day_of_week
 - [ ] Create admin user seed (optional for dev)
 
 ---
