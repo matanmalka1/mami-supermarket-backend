@@ -1,8 +1,44 @@
-"""Blueprint placeholder for checkout."""
-from flask import Blueprint
+"""Checkout preview and confirm endpoints."""
 
-blueprint = Blueprint('checkout', __name__)
+from __future__ import annotations
 
-@blueprint.route('/')
-def placeholder():
-    return {'data': 'placeholder for checkout'}
+from uuid import UUID
+
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from ..middleware.error_handler import DomainError
+from ..schemas.checkout import CheckoutConfirmRequest, CheckoutPreviewRequest
+from ..services.checkout import CheckoutService
+from ..utils.responses import success_envelope
+
+blueprint = Blueprint("checkout", __name__)
+
+
+def _current_user_id() -> UUID:
+    ident = get_jwt_identity()
+    if not ident:
+        raise DomainError("AUTH_REQUIRED", "Authentication required", status_code=401)
+    return UUID(ident)
+
+
+def _parse(body_model, data: dict | None):
+    if not data:
+        raise DomainError("BAD_REQUEST", "Missing JSON body", status_code=400)
+    return body_model.model_validate(data)
+
+
+@blueprint.post("/preview")
+@jwt_required()
+def preview():
+    payload = _parse(CheckoutPreviewRequest, request.get_json())
+    result = CheckoutService.preview(payload)
+    return jsonify(success_envelope(result))
+
+
+@blueprint.post("/confirm")
+@jwt_required()
+def confirm():
+    payload = _parse(CheckoutConfirmRequest, request.get_json())
+    result = CheckoutService.confirm(payload)
+    return jsonify(success_envelope(result)), 201

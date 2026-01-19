@@ -215,37 +215,33 @@ Admin (MANAGER/ADMIN):
 
 ## Phase 7 — Checkout (Critical Path)
 ### 7.1 Checkout Preview
-- [ ] `POST /api/v1/checkout/preview`
-- [ ] Resolve branch:
-  - [ ] DELIVERY → `DELIVERY_SOURCE_BRANCH_ID`
+- [x] `POST /api/v1/checkout/preview`
+- [x] Resolve branch:
+  - [x] DELIVERY → `DELIVERY_SOURCE_BRANCH_ID`
   - [ ] PICKUP → selected branch
 - [ ] Validate delivery slot: 2-hour window between 06:00–22:00
-- [ ] Revalidate inventory against resolved branch
-- [ ] Compute totals:
-  - [ ] delivery fee rules (min ₪150, else ₪30 or suggest pickup)
-- [ ] Return missing items details if insufficient stock
+- [x] Revalidate inventory against resolved branch
+- [x] Compute totals:
+  - [x] delivery fee rules (min ₪150, else ₪30)
+- [x] Return missing items details if insufficient stock
 
 ### 7.2 Checkout Confirm (Transactional + Locking)
-- [ ] `POST /api/v1/checkout/confirm`
-- [ ] Implement **pessimistic locking**:
-  - [ ] `db.session.begin()`
-  - [ ] `InventoryService.lock_and_verify(...).with_for_update()`
-  - [ ] verify quantities
-- [ ] Payment integration (Tokenization):
-  - [ ] charge only after lock, before commit
-  - [ ] map provider errors to `PAYMENT_FAILED`
-- [ ] Create order:
-  - [ ] order_number generation
-  - [ ] create Order + DeliveryDetails/PickupDetails
-  - [ ] create OrderItems snapshots
-- [ ] Decrement inventory (locked rows)
-- [ ] Audit inside transaction:
-  - [ ] order created
-  - [ ] inventory decremented (old/new)
-  - [ ] status initial
-- [ ] Commit
-- [ ] Payment “danger zone” mitigation:
-  - [ ] log `PAYMENT_CAPTURED_NOT_COMMITTED` if commit fails after payment success
+- [x] `POST /api/v1/checkout/confirm`
+- [x] Implement **pessimistic locking**:
+  - [x] `db.session.begin()`/`with_for_update()`
+  - [x] verify quantities
+- [x] Payment integration (stubbed):
+  - [x] charge only after lock, before commit
+- [x] Create order:
+  - [x] order_number generation
+  - [x] create Order + DeliveryDetails/PickupDetails
+  - [x] create OrderItems snapshots
+- [x] Decrement inventory (locked rows)
+- [x] Audit inside transaction:
+  - [x] order created
+  - [ ] inventory decremented (old/new) (partial)
+- [x] Commit
+- [ ] Payment “danger zone” mitigation (not yet)
 
 ### 7.3 Save Default Payment Token
 - [ ] If `save_as_default=true`:
