@@ -33,8 +33,6 @@ class CartService:
     @staticmethod
     def get_cart(user_id: UUID) -> CartResponse:
         cart = CartService.get_or_create_cart(user_id)
-        db.session.refresh(cart)
-        db.session.commit()
         return CartService._to_response(cart)
 
     @staticmethod
