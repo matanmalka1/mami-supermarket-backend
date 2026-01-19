@@ -1,0 +1,6 @@
+flask
+sqlalchemy
+flask-jwt-extended
+psycopg[binary]
+pydantic
+httpx
