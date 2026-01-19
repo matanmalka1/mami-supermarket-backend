@@ -6,7 +6,16 @@ from .config import AppConfig
 from .extensions import db, jwt, limiter
 from .middleware import register_middlewares
 from .utils.logging_config import setup_structured_logging
-
+from .routes.v1 import (
+    admin,
+    auth,
+    branches,
+    cart,
+    catalog,
+    checkout,
+    ops,
+    orders,
+)
 
 def create_app(config: AppConfig | None = None) -> Flask:
     """Create and configure the Flask application."""
@@ -38,18 +47,11 @@ def _register_extensions(app: Flask) -> None:
 
 
 def _register_blueprints(app: Flask) -> None:
-    from .routes.v1 import (
-        admin,
-        auth,
-        cart,
-        catalog,
-        checkout,
-        ops,
-        orders,
-    )
+
 
     app.register_blueprint(auth.blueprint, url_prefix="/api/v1/auth")
     app.register_blueprint(catalog.blueprint, url_prefix="/api/v1/catalog")
+    app.register_blueprint(branches.blueprint, url_prefix="/api/v1")
     app.register_blueprint(cart.blueprint, url_prefix="/api/v1/cart")
     app.register_blueprint(checkout.blueprint, url_prefix="/api/v1/checkout")
     app.register_blueprint(orders.blueprint, url_prefix="/api/v1/orders")

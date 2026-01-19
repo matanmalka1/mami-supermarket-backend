@@ -185,16 +185,16 @@ Each task is written as a checkbox so you can track progress in GitHub.
 ---
 
 ## Phase 5 — Branches, DeliverySlots, Inventory (Admin)
-- [ ] `GET /api/v1/branches`
-- [ ] `GET /api/v1/delivery-slots?dayOfWeek=...`
+- [x] `GET /api/v1/branches`
+- [x] `GET /api/v1/delivery-slots?dayOfWeek=...`
 
 Admin (MANAGER/ADMIN):
-- [ ] Branch CRUD + deactivate
-- [ ] DeliverySlot CRUD + deactivate
-- [ ] Inventory endpoints:
-  - [ ] `GET /api/v1/admin/inventory?branchId=&productId=&limit=&offset=`
-  - [ ] `PUT /api/v1/admin/inventory/:id` (update quantity)
-- [ ] Audit inventory updates (old/new)
+- [x] Branch CRUD + deactivate
+- [x] DeliverySlot CRUD + deactivate
+- [x] Inventory endpoints:
+  - [x] `GET /api/v1/admin/inventory?branchId=&productId=&limit=&offset=`
+  - [x] `PUT /api/v1/admin/inventory/:id` (update quantity)
+- [x] Audit inventory updates (old/new)
 - [ ] Ensure DELIVERY_SOURCE_BRANCH_ID exists in DB
 
 ---

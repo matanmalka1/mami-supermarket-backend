@@ -3,6 +3,15 @@
 from .auth import AuthResponse, ChangePasswordRequest, LoginRequest, RegisterRequest, UserResponse
 from .audit import AuditQuery, AuditResponse
 from .cart import CartItemResponse, CartItemUpsertRequest, CartResponse
+from .branches import (
+    BranchAdminRequest,
+    BranchResponse,
+    DeliverySlotAdminRequest,
+    DeliverySlotResponse,
+    InventoryListResponse,
+    InventoryResponse,
+    InventoryUpdateRequest,
+)
 from .catalog import (
     AutocompleteItem,
     AutocompleteResponse,
@@ -41,6 +50,13 @@ __all__ = [
     "UserResponse",
     "AuthResponse",
     "CategoryResponse",
+    "BranchAdminRequest",
+    "BranchResponse",
+    "DeliverySlotAdminRequest",
+    "DeliverySlotResponse",
+    "InventoryListResponse",
+    "InventoryResponse",
+    "InventoryUpdateRequest",
     "ProductResponse",
     "ProductSearchResponse",
     "ProductUpdateRequest",
