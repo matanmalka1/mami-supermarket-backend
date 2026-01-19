@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time
+from decimal import Decimal
 from uuid import UUID, uuid4
 
 from flask import current_app
@@ -11,7 +12,18 @@ from sqlalchemy.orm import joinedload
 
 from ..extensions import db
 from ..middleware.error_handler import DomainError
-from ..models import Cart, CartItem, Inventory, Order, OrderDeliveryDetails, OrderItem, OrderPickupDetails
+from ..models import (
+    Branch,
+    Cart,
+    CartItem,
+    DeliverySlot,
+    Inventory,
+    Order,
+    OrderDeliveryDetails,
+    OrderItem,
+    OrderPickupDetails,
+    PaymentToken,
+)
 from ..models.enums import FulfillmentType, OrderStatus
 from ..schemas.checkout import (
     CheckoutConfirmRequest,
@@ -43,48 +55,49 @@ class CheckoutService:
     def confirm(payload: CheckoutConfirmRequest) -> CheckoutConfirmResponse:
         branch_id = CheckoutService._resolve_branch(payload.fulfillment_type, payload.branch_id)
         cart = CheckoutService._load_cart(payload.cart_id, for_update=True, branch_id=branch_id)
+        CheckoutService._validate_delivery_slot(payload.fulfillment_type, payload.delivery_slot_id, branch_id)
 
         # Lock inventory rows
         inv_ids = [item.product_id for item in cart.items]
         inventory_rows = db.session.execute(
-            select(Inventory).where(Inventory.product_id.in_(inv_ids)).where(Inventory.branch_id == branch_id).with_for_update()
+            select(Inventory)
+            .where(Inventory.product_id.in_(inv_ids))
+            .where(Inventory.branch_id == branch_id)
+            .with_for_update()
         ).scalars().all()
         inv_map = {(inv.product_id, inv.branch_id): inv for inv in inventory_rows}
 
         # Verify quantities
         missing = CheckoutService._missing_items(cart.items, branch_id, inv_map)
         if missing:
-            raise DomainError("INSUFFICIENT_STOCK", "Insufficient stock for items", status_code=409, details={"missing": [m.model_dump() for m in missing]})
+            raise DomainError(
+                "INSUFFICIENT_STOCK",
+                "Insufficient stock for items",
+                status_code=409,
+                details={"missing": [m.model_dump() for m in missing]},
+            )
 
         # Charge payment (stub)
         cart_total = sum(item.unit_price * item.quantity for item in cart.items)
         delivery_fee = CheckoutService._delivery_fee(cart)["delivery_fee"]
-        total_amount = float(cart_total + (delivery_fee or 0))
-        payment_ref = PaymentService.charge(payload.payment_token_id, total_amount)
+        total_amount = Decimal(cart_total + (delivery_fee or 0))
+        payment_ref = None
+        try:
+            payment_ref = PaymentService.charge(payload.payment_token_id, float(total_amount))
 
-        # Create order + snapshots and decrement inventory
-        order = Order(
-            id=uuid4(),
-            order_number=CheckoutService._order_number(),
-            user_id=cart.user_id,
-            total_amount=total_amount,
-            fulfillment_type=payload.fulfillment_type or FulfillmentType.DELIVERY,
-            status=OrderStatus.CREATED,
-            branch_id=branch_id,
-        )
-        db.session.add(order)
-        for item in cart.items:
-            OrderItem(
+            # Create order + snapshots and decrement inventory
+            order = Order(
                 id=uuid4(),
-                order_id=order.id,
-                product_id=item.product_id,
-                name=item.product.name,
-                sku=item.product.sku,
-                unit_price=item.unit_price,
-                quantity=item.quantity,
+                order_number=CheckoutService._order_number(),
+                user_id=cart.user_id,
+                total_amount=total_amount,
+                fulfillment_type=payload.fulfillment_type or FulfillmentType.DELIVERY,
+                status=OrderStatus.CREATED,
+                branch_id=branch_id,
             )
-            db.session.add(
-                OrderItem(
+            db.session.add(order)
+            for item in cart.items:
+                order_item = OrderItem(
                     id=uuid4(),
                     order_id=order.id,
                     product_id=item.product_id,
@@ -93,41 +106,67 @@ class CheckoutService:
                     unit_price=item.unit_price,
                     quantity=item.quantity,
                 )
-            )
-            key = (item.product_id, branch_id)
-            inv_row = inv_map.get(key)
-            if inv_row:
-                inv_row.available_quantity -= item.quantity
-                db.session.add(inv_row)
+                db.session.add(order_item)
+                key = (item.product_id, branch_id)
+                inv_row = inv_map.get(key)
+                if inv_row:
+                    old_value = {
+                        "available_quantity": inv_row.available_quantity,
+                        "reserved_quantity": inv_row.reserved_quantity,
+                    }
+                    inv_row.available_quantity -= item.quantity
+                    db.session.add(inv_row)
+                    AuditService.log_event(
+                        entity_type="inventory",
+                        action="DECREMENT",
+                        entity_id=inv_row.id,
+                        old_value=old_value,
+                        new_value={
+                            "available_quantity": inv_row.available_quantity,
+                            "reserved_quantity": inv_row.reserved_quantity,
+                        },
+                    )
 
-        if payload.fulfillment_type == FulfillmentType.DELIVERY:
-            delivery = OrderDeliveryDetails(
-                id=uuid4(),
-                order_id=order.id,
-                delivery_slot_id=payload.delivery_slot_id,
-                address=payload.address or "",
-                slot_start=None,
-                slot_end=None,
-            )
-            db.session.add(delivery)
-        else:
-            pickup = OrderPickupDetails(
-                id=uuid4(),
-                order_id=order.id,
-                branch_id=branch_id,
-                pickup_window_start=datetime.utcnow(),
-                pickup_window_end=datetime.utcnow(),
-            )
-            db.session.add(pickup)
+            if payload.fulfillment_type == FulfillmentType.DELIVERY:
+                delivery = OrderDeliveryDetails(
+                    id=uuid4(),
+                    order_id=order.id,
+                    delivery_slot_id=payload.delivery_slot_id,
+                    address=payload.address or "",
+                    slot_start=None,
+                    slot_end=None,
+                )
+                db.session.add(delivery)
+            else:
+                pickup = OrderPickupDetails(
+                    id=uuid4(),
+                    order_id=order.id,
+                    branch_id=branch_id,
+                    pickup_window_start=datetime.utcnow(),
+                    pickup_window_end=datetime.utcnow(),
+                )
+                db.session.add(pickup)
 
-        AuditService.log_event(
-            entity_type="order",
-            action="CREATE",
-            entity_id=order.id,
-            actor_user_id=order.user_id,
-            new_value={"order_number": order.order_number, "total_amount": total_amount},
-        )
-        db.session.commit()
+            if payload.save_as_default:
+                CheckoutService._set_default_payment_token(cart.user_id, payload.payment_token_id)
+
+            AuditService.log_event(
+                entity_type="order",
+                action="CREATE",
+                entity_id=order.id,
+                actor_user_id=order.user_id,
+                new_value={"order_number": order.order_number, "total_amount": float(total_amount)},
+            )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            if payment_ref:
+                AuditService.log_event(
+                    entity_type="payment",
+                    action="PAYMENT_CAPTURED_NOT_COMMITTED",
+                    context={"reference": payment_ref, "cart_id": str(cart.id)},
+                )
+            raise
 
         return CheckoutConfirmResponse(
             order_id=order.id,
@@ -152,6 +191,22 @@ class CheckoutService:
                 raise DomainError("NOT_FOUND", "Branch not found", status_code=404)
             return branch.id
         raise DomainError("BAD_REQUEST", "Branch is required for pickup", status_code=400)
+
+    @staticmethod
+    def _validate_delivery_slot(fulfillment_type: FulfillmentType | None, slot_id: UUID | None, branch_id: UUID) -> None:
+        if fulfillment_type != FulfillmentType.DELIVERY:
+            return
+        if not slot_id:
+            raise DomainError("BAD_REQUEST", "Delivery slot is required for delivery", status_code=400)
+        slot = db.session.get(DeliverySlot, slot_id)
+        if not slot or not slot.is_active:
+            raise DomainError("NOT_FOUND", "Delivery slot not found", status_code=404)
+        if slot.branch_id != branch_id:
+            raise DomainError("INVALID_SLOT", "Delivery slot does not belong to delivery branch", status_code=400)
+        start = slot.start_time
+        end = slot.end_time
+        if not (time(6, 0) <= start < end <= time(22, 0)) or (end.hour - start.hour) != 2:
+            raise DomainError("INVALID_SLOT", "Delivery slot must be a 2-hour window between 06:00-22:00", status_code=400)
 
     @staticmethod
     def _load_cart(cart_id: UUID, for_update: bool = False, branch_id: UUID | None = None) -> Cart:
