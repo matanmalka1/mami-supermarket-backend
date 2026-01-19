@@ -4,6 +4,7 @@ from .base import Base
 from .entities import (
     Address,
     Audit,
+    Category,
     Branch,
     Cart,
     CartItem,
@@ -33,6 +34,7 @@ __all__ = [
     "Base",
     "Address",
     "Audit",
+    "Category",
     "Branch",
     "Cart",
     "CartItem",

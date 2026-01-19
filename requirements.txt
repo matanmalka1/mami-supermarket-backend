@@ -5,6 +5,7 @@ psycopg[binary]
 Flask-JWT-Extended
 passlib[bcrypt]
 pydantic
+email-validator
 httpx
 Flask-Cors
 Flask-Limiter

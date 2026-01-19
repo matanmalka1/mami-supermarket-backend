@@ -6,8 +6,8 @@ from uuid import UUID
 
 from flask import Blueprint, jsonify, request
 
-from ..services.catalog import CatalogService
-from ..utils.responses import success_envelope
+from app.services.catalog import CatalogService
+from app.utils.responses import success_envelope
 
 blueprint = Blueprint("catalog", __name__)
 

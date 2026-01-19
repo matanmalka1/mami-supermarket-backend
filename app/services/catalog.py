@@ -2,37 +2,39 @@
 
 from __future__ import annotations
 
+# pylint: disable=missing-class-docstring,missing-function-docstring,not-callable
+
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import func, select
+import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
-from ..extensions import db
-from ..middleware.error_handler import DomainError
-from ..models import Category, Inventory, Product
-from ..schemas.catalog import (
+from app.extensions import db
+from app.middleware.error_handler import DomainError
+from app.models import Category, Inventory, Product
+from app.schemas.catalog import (
     AutocompleteItem,
     AutocompleteResponse,
     CategoryResponse,
     ProductResponse,
 )
-from ..services.audit import AuditService
+from app.services.audit import AuditService
 
 
 class CatalogService:
     @staticmethod
     def list_categories(limit: int, offset: int) -> tuple[list[CategoryResponse], int]:
         stmt = (
-            select(Category)
+            sa.select(Category)
             .where(Category.is_active.is_(True))
             .offset(offset)
             .limit(limit)
         )
         categories = db.session.execute(stmt).scalars().all()
         total = db.session.scalar(
-            select(func.count()).select_from(Category).where(Category.is_active.is_(True))
+            sa.select(sa.func.count()).select_from(Category).where(Category.is_active.is_(True))
         )
         return ([CategoryResponse(**c.__dict__) for c in categories], total or 0)
 
@@ -44,7 +46,7 @@ class CatalogService:
         offset: int,
     ) -> tuple[list[ProductResponse], int]:
         stmt = (
-            select(Product)
+            sa.select(Product)
             .where(Product.category_id == category_id)
             .where(Product.is_active.is_(True))
             .options(selectinload(Product.inventory).selectinload(Inventory.branch))
@@ -53,7 +55,7 @@ class CatalogService:
         )
         products = db.session.execute(stmt).scalars().all()
         total = db.session.scalar(
-            select(func.count())
+            sa.select(sa.func.count())
             .select_from(Product)
             .where(Product.category_id == category_id)
             .where(Product.is_active.is_(True))
@@ -63,7 +65,7 @@ class CatalogService:
     @staticmethod
     def get_product(product_id: UUID, branch_id: UUID | None) -> ProductResponse:
         stmt = (
-            select(Product)
+            sa.select(Product)
             .where(Product.id == product_id)
             .options(selectinload(Product.inventory).selectinload(Inventory.branch))
         )
@@ -81,12 +83,11 @@ class CatalogService:
         limit: int,
         offset: int,
     ) -> tuple[list[ProductResponse], int]:
-        base = select(Product).where(Product.is_active.is_(True))
+        base = sa.select(Product).where(Product.is_active.is_(True))
         if query:
             base = base.where(Product.name.ilike(f"%{query}%"))
         if category_id:
             base = base.where(Product.category_id == category_id)
-        total = db.session.scalar(select(func.count()).select_from(base.subquery()))
         stmt = (
             base.options(selectinload(Product.inventory).selectinload(Inventory.branch))
             .offset(offset)
@@ -94,12 +95,23 @@ class CatalogService:
         )
         products = db.session.execute(stmt).scalars().all()
         if in_stock is not None:
-            products = [p for p in products if CatalogService._matches_stock(p, branch_id, in_stock)]
-        return CatalogService._map_products(products, branch_id), len(products)
+            products = [
+                p
+                for p in products
+                if CatalogService._matches_stock(p, branch_id, in_stock)
+            ]
+        count_stmt = sa.select(sa.func.count()).select_from(base.subquery())
+        # pylint: disable=not-callable  # sa.func is callable; pylint false-positive
+        total = (
+            len(products)
+            if in_stock is not None
+            else db.session.scalar(count_stmt)
+        )
+        return CatalogService._map_products(products, branch_id), total or 0
 
     @staticmethod
     def autocomplete(query: str | None, limit: int) -> AutocompleteResponse:
-        stmt = select(Product).where(Product.is_active.is_(True))
+        stmt = sa.select(Product).where(Product.is_active.is_(True))
         if query:
             stmt = stmt.where(Product.name.ilike(f"%{query}%"))
         products = db.session.execute(stmt.limit(limit)).scalars().all()
@@ -257,7 +269,7 @@ class CatalogService:
         if not product.inventory:
             product.inventory = (
                 db.session.execute(
-                    select(Inventory).where(Inventory.product_id == product.id)
+                    sa.select(Inventory).where(Inventory.product_id == product.id)
                 ).scalars().all()
             )
 

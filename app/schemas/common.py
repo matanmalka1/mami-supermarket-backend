@@ -7,7 +7,7 @@ from typing import Generic, Mapping, TypeVar
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, Field, GenericModel
+from pydantic import BaseModel, Field
 
 
 T = TypeVar("T")
@@ -46,6 +46,6 @@ class Pagination(DefaultModel):
     offset: int = Field(ge=0)
 
 
-class PaginatedResponse(GenericModel, Generic[T], DefaultModel):
+class PaginatedResponse(DefaultModel, Generic[T]):
     data: list[T]
     pagination: Pagination

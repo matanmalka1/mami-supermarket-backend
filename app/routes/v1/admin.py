@@ -6,21 +6,21 @@ from uuid import UUID
 
 from flask import Blueprint, jsonify, request
 
-from ...middleware.auth import require_role
-from ...models.enums import Role
-from ..schemas.branches import (
+from app.middleware.auth import require_role
+from app.models.enums import Role
+from app.schemas.branches import (
     BranchAdminRequest,
     DeliverySlotAdminRequest,
     InventoryUpdateRequest,
 )
-from ..schemas.catalog import (
+from app.schemas.catalog import (
     CategoryAdminRequest,
     ProductAdminRequest,
     ProductUpdateRequest,
 )
-from ..services.branches import BranchService, InventoryService
-from ..services.catalog import CatalogService
-from ..utils.responses import success_envelope
+from app.services.branches import BranchService, InventoryService
+from app.services.catalog import CatalogService
+from app.utils.responses import success_envelope
 
 blueprint = Blueprint("admin", __name__)
 

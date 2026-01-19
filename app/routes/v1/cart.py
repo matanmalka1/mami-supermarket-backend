@@ -7,10 +7,10 @@ from uuid import UUID
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from ...middleware.error_handler import DomainError
-from ..schemas.cart import CartItemUpsertRequest
-from ..services.cart import CartService
-from ..utils.responses import success_envelope
+from app.middleware.error_handler import DomainError
+from app.schemas.cart import CartItemUpsertRequest
+from app.services.cart import CartService
+from app.utils.responses import success_envelope
 
 blueprint = Blueprint("cart", __name__)
 

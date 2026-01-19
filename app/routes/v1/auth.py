@@ -3,17 +3,17 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from ...middleware.error_handler import DomainError
-from ..extensions import limiter
-from ..services.audit import AuditService
-from ..utils.responses import success_envelope
-from ..schemas.auth import (
+from app.middleware.error_handler import DomainError
+from app.extensions import limiter
+from app.services.audit import AuditService
+from app.utils.responses import success_envelope
+from app.schemas.auth import (
     AuthResponse,
     ChangePasswordRequest,
     LoginRequest,
     RegisterRequest,
 )
-from ..services.auth import AuthService
+from app.services.auth import AuthService
 
 blueprint = Blueprint("auth", __name__)
 
