@@ -1,10 +1,17 @@
 """Simple seeding helpers for the initial data."""
 
+from __future__ import annotations
+
+import sys
 from datetime import time
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(PROJECT_ROOT))
 
 from app.config import AppConfig
 from app.models import Base, Branch, DeliverySlot
@@ -59,7 +66,7 @@ def main() -> None:
             seed_delivery_slots(session, branch)
             session.commit()
     except IntegrityError:
-        print(\"Seed already applied or constraint violated\")
+        print("Seed already applied or constraint violated")
 
 
 if __name__ == "__main__":
