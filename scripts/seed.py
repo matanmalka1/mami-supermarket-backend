@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from datetime import time
 from pathlib import Path
 
+from passlib.context import CryptContext
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -14,7 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
 from app.config import AppConfig
-from app.models import Base, Branch, DeliverySlot
+from app.models import Base, Branch, DeliverySlot, Role, User
 
 
 def seed_warehouse_branch(session: Session) -> Branch:
@@ -54,6 +56,27 @@ def seed_delivery_slots(session: Session, branch: Branch) -> None:
             )
 
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def seed_admin_user(session: Session) -> None:
+    email = os.environ.get("ADMIN_EMAIL", "admin@mami.local")
+    password = os.environ.get("ADMIN_PASSWORD", "ChangeMe123!")
+    full_name = os.environ.get("ADMIN_FULL_NAME", "Super Admin")
+
+    existing = session.query(User).filter_by(email=email).first()
+    if existing:
+        return
+
+    user = User(
+        email=email,
+        full_name=full_name,
+        password_hash=pwd_context.hash(password),
+        role=Role.ADMIN,
+    )
+    session.add(user)
+
+
 def main() -> None:
     config = AppConfig()
     engine = create_engine(config.DATABASE_URL)
@@ -64,6 +87,7 @@ def main() -> None:
         with Session(engine) as session:
             branch = seed_warehouse_branch(session)
             seed_delivery_slots(session, branch)
+            seed_admin_user(session)
             session.commit()
     except IntegrityError:
         print("Seed already applied or constraint violated")

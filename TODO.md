@@ -92,14 +92,14 @@ Each task is written as a checkbox so you can track progress in GitHub.
 ### 1.4 Alembic
 - [x] `alembic init`
 - [x] Create first migration
-- [ ] Apply migration to dev DB
+- [x] Apply migration to dev DB
 
 ### 1.5 Seed / Bootstrap
 - [x] Create branches seed:
   - [x] "The Warehouse" branch (store its id)
 - [x] Create delivery slots seed:
   - [x] 2-hour windows from 06:00 to 22:00 for each day_of_week
-- [ ] Create admin user seed (optional for dev)
+- [x] Create admin user seed (optional for dev)
 
 ---
 

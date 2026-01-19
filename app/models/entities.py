@@ -72,7 +72,7 @@ class PaymentToken(Base, TimestampMixin):
     provider = Column(String(64), nullable=False)
     token = Column(String(512), nullable=False)
     is_default = Column(Boolean, nullable=False, server_default="false")
-    metadata = Column(JSON, nullable=True)
+    metadata_payload = Column("metadata", JSON, nullable=True)
 
     user = relationship("User", back_populates="payment_tokens")
 
