@@ -176,7 +176,11 @@ class CatalogService:
             session.commit()
         except IntegrityError as exc:
             session.rollback()
-            raise DomainError("DATABASE_ERROR", "Could not create product", details={"error": str(exc)})
+            raise DomainError(
+                "DATABASE_ERROR",
+                "Could not create product",
+                details={"error": str(exc)},
+            ) from exc
         AuditService.log_event(entity_type="product", action="CREATE", entity_id=product.id)
         return CatalogService._to_response(product, None)
 
