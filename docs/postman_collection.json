@@ -1,0 +1,316 @@
+{
+  "info": {
+    "name": "Mami Supermarket API",
+    "_postman_id": "9a6d5f0d-0000-4000-8000-000000000000",
+    "description": "Postman collection for core backend flows",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/v1/health", "host": ["{{base_url}}"], "path": ["api","v1","health"] }
+      }
+    },
+    {
+      "name": "Auth - Register",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"ChangeMe123!\",\n  \"full_name\": \"User\",\n  \"role\": \"CUSTOMER\"\n}" },
+        "url": { "raw": "{{base_url}}/api/v1/auth/register", "host": ["{{base_url}}"], "path": ["api","v1","auth","register"] }
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"ChangeMe123!\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/v1/auth/login", "host": ["{{base_url}}"], "path": ["api","v1","auth","login"] }
+      }
+    },
+    {
+      "name": "Auth - Change Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"current_password\": \"ChangeMe123!\",\n  \"new_password\": \"NewPass123!\"\n}" },
+        "url": { "raw": "{{base_url}}/api/v1/auth/change-password", "host": ["{{base_url}}"], "path": ["api","v1","auth","change-password"] }
+      }
+    },
+    {
+      "name": "Catalog - Categories",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/api/v1/catalog/categories", "host": ["{{base_url}}"], "path": ["api","v1","catalog","categories"] } }
+    },
+    {
+      "name": "Catalog - Category Products",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/api/v1/catalog/categories/{{category_id}}/products?branchId={{branch_id}}", "host": ["{{base_url}}"], "path": ["api","v1","catalog","categories","{{category_id}}","products"], "query": [ { "key": "branchId", "value": "{{branch_id}}" } ] } }
+    },
+    {
+      "name": "Catalog - Product Detail",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/api/v1/catalog/products/{{product_id}}?branchId={{branch_id}}", "host": ["{{base_url}}"], "path": ["api","v1","catalog","products","{{product_id}}"], "query": [ { "key": "branchId", "value": "{{branch_id}}" } ] } }
+    },
+    {
+      "name": "Catalog - Search",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/api/v1/catalog/products/search?q=milk&limit=10&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","catalog","products","search"], "query": [ { "key": "q", "value": "milk" }, { "key": "limit", "value": "10" }, { "key": "offset", "value": "0" } ] } }
+    },
+    {
+      "name": "Catalog - Autocomplete",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/api/v1/catalog/products/autocomplete?q=mi&limit=5", "host": ["{{base_url}}"], "path": ["api","v1","catalog","products","autocomplete"], "query": [ { "key": "q", "value": "mi" }, { "key": "limit", "value": "5" } ] } }
+    },
+    {
+      "name": "Cart - Add Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 2\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/v1/cart/items", "host": ["{{base_url}}"], "path": ["api","v1","cart","items"] }
+      }
+    },
+    {
+      "name": "Cart - Get",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/v1/cart", "host": ["{{base_url}}"], "path": ["api","v1","cart"] }
+      }
+    },
+    {
+      "name": "Cart - Update Item",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"quantity\": 3,\n  \"product_id\": \"{{product_id}}\"\n}" },
+        "url": { "raw": "{{base_url}}/api/v1/cart/items/{{item_id}}", "host": ["{{base_url}}"], "path": ["api","v1","cart","items","{{item_id}}"] }
+      }
+    },
+    {
+      "name": "Cart - Delete Item",
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/v1/cart/items/{{item_id}}", "host": ["{{base_url}}"], "path": ["api","v1","cart","items","{{item_id}}"] }
+      }
+    },
+    {
+      "name": "Cart - Clear",
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/v1/cart", "host": ["{{base_url}}"], "path": ["api","v1","cart"] }
+      }
+    },
+    {
+      "name": "Checkout - Preview",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cart_id\": \"{{cart_id}}\",\n  \"fulfillment_type\": \"PICKUP\",\n  \"branch_id\": \"{{branch_id}}\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/v1/checkout/preview", "host": ["{{base_url}}"], "path": ["api","v1","checkout","preview"] }
+      }
+    },
+    {
+      "name": "Checkout - Confirm",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" },
+          { "key": "Idempotency-Key", "value": "demo-key-1" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cart_id\": \"{{cart_id}}\",\n  \"payment_token_id\": \"{{payment_token_id}}\",\n  \"fulfillment_type\": \"DELIVERY\",\n  \"delivery_slot_id\": \"{{delivery_slot_id}}\",\n  \"address\": \"123 Main St\",\n  \"save_as_default\": true\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/v1/checkout/confirm", "host": ["{{base_url}}"], "path": ["api","v1","checkout","confirm"] }
+      }
+    },
+    {
+      "name": "Orders - List (Customer)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/v1/orders?limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","orders"], "query": [ { "key": "limit", "value": "20" }, { "key": "offset", "value": "0" } ] }
+      }
+    },
+    {
+      "name": "Ops - Orders List",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{ops_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/v1/ops/orders?status=IN_PROGRESS&limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","ops","orders"], "query": [ { "key": "status", "value": "IN_PROGRESS" }, { "key": "limit", "value": "20" }, { "key": "offset", "value": "0" } ] }
+      }
+    },
+    {
+      "name": "Ops - Order Detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{ops_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/v1/ops/orders/{{order_id}}", "host": ["{{base_url}}"], "path": ["api","v1","ops","orders","{{order_id}}"] }
+      }
+    },
+    {
+      "name": "Ops - Update Item Picked Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{ops_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"picked_status\": \"PICKED\"\n}" },
+        "url": { "raw": "{{base_url}}/api/v1/ops/orders/{{order_id}}/items/{{item_id}}/picked-status", "host": ["{{base_url}}"], "path": ["api","v1","ops","orders","{{order_id}}","items","{{item_id}}","picked-status"] }
+      }
+    },
+    {
+      "name": "Ops - Update Order Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{ops_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"READY\"\n}" },
+        "url": { "raw": "{{base_url}}/api/v1/ops/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["api","v1","ops","orders","{{order_id}}","status"] }
+      }
+    },
+    {
+      "name": "Stock Requests - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"branch_id\": \"{{branch_id}}\",\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 5,\n  \"request_type\": \"ADD_QUANTITY\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/v1/stock-requests", "host": ["{{base_url}}"], "path": ["api","v1","stock-requests"] }
+      }
+    },
+    {
+      "name": "Audit - List (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/v1/admin/audit?limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","admin","audit"], "query": [ { "key": "limit", "value": "20" }, { "key": "offset", "value": "0" } ] }
+      }
+    },
+    {
+      "name": "Admin - Create Category",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{ \"name\": \"Dairy\", \"description\": \"Milk & cheese\" }" },
+        "url": { "raw": "{{base_url}}/api/v1/admin/categories", "host": ["{{base_url}}"], "path": ["api","v1","admin","categories"] }
+      }
+    },
+    {
+      "name": "Admin - Create Product",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{ \"name\": \"Milk\", \"sku\": \"SKU123\", \"price\": \"10.00\", \"category_id\": \"{{category_id}}\" }" },
+        "url": { "raw": "{{base_url}}/api/v1/admin/products", "host": ["{{base_url}}"], "path": ["api","v1","admin","products"] }
+      }
+    },
+    {
+      "name": "Admin - Create Branch",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{ \"name\": \"Branch A\", \"address\": \"123 St\" }" },
+        "url": { "raw": "{{base_url}}/api/v1/admin/branches", "host": ["{{base_url}}"], "path": ["api","v1","admin","branches"] }
+      }
+    },
+    {
+      "name": "Admin - Create Delivery Slot",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{ \"branch_id\": \"{{branch_id}}\", \"day_of_week\": 0, \"start_time\": \"06:00\", \"end_time\": \"08:00\" }" },
+        "url": { "raw": "{{base_url}}/api/v1/admin/delivery-slots", "host": ["{{base_url}}"], "path": ["api","v1","admin","delivery-slots"] }
+      }
+    },
+    {
+      "name": "Admin - Inventory List",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/v1/admin/inventory?branchId={{branch_id}}&productId={{product_id}}&limit=20&offset=0", "host": ["{{base_url}}"], "path": ["api","v1","admin","inventory"], "query": [ { "key": "branchId", "value": "{{branch_id}}" }, { "key": "productId", "value": "{{product_id}}" }, { "key": "limit", "value": "20" }, { "key": "offset", "value": "0" } ] }
+      }
+    },
+    {
+      "name": "Admin - Inventory Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{ \"available_quantity\": 10, \"reserved_quantity\": 0 }" },
+        "url": { "raw": "{{base_url}}/api/v1/admin/inventory/{{inventory_id}}", "host": ["{{base_url}}"], "path": ["api","v1","admin","inventory","{{inventory_id}}"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "access_token", "value": "" },
+    { "key": "ops_token", "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "employee_token", "value": "" },
+    { "key": "cart_id", "value": "" },
+    { "key": "branch_id", "value": "" },
+    { "key": "delivery_slot_id", "value": "" },
+    { "key": "product_id", "value": "" },
+    { "key": "payment_token_id", "value": "" }
+  ]
+}

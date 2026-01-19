@@ -28,6 +28,7 @@
 13. [Audit & Security Philosophy](#audit--security-philosophy)
 14. [Development Guidelines & Conventions](#development-guidelines--conventions)
 15. [Production Recommendations](#production-recommendations)
+16. [API Samples](docs/api.md)
 
 ## Overview
 

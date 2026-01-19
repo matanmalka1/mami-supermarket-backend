@@ -349,6 +349,6 @@ Admin (MANAGER/ADMIN):
 ---
 
 ## Phase 14 — Client Prep (After Backend MVP)
-- [ ] Publish OpenAPI-like docs (manual) or postman collection
-- [ ] Provide sample JSON for top endpoints (auth/cart/checkout/ops/stock)
-- [ ] Define frontend error handling rules based on ErrorResponse
+- [x] Publish OpenAPI-like docs (manual) or postman collection
+- [x] Provide sample JSON for top endpoints (auth/cart/checkout/ops/stock)
+- [x] Define frontend error handling rules based on ErrorResponse
