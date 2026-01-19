@@ -218,8 +218,8 @@ Admin (MANAGER/ADMIN):
 - [x] `POST /api/v1/checkout/preview`
 - [x] Resolve branch:
   - [x] DELIVERY → `DELIVERY_SOURCE_BRANCH_ID`
-  - [ ] PICKUP → selected branch
-- [ ] Validate delivery slot: 2-hour window between 06:00–22:00
+  - [x] PICKUP → selected branch
+- [x] Validate delivery slot: 2-hour window between 06:00–22:00
 - [x] Revalidate inventory against resolved branch
 - [x] Compute totals:
   - [x] delivery fee rules (min ₪150, else ₪30)
@@ -239,14 +239,14 @@ Admin (MANAGER/ADMIN):
 - [x] Decrement inventory (locked rows)
 - [x] Audit inside transaction:
   - [x] order created
-  - [ ] inventory decremented (old/new) (partial)
+  - [x] inventory decremented (old/new)
 - [x] Commit
-- [ ] Payment “danger zone” mitigation (not yet)
+- [x] Payment “danger zone” mitigation (not yet)
 
 ### 7.3 Save Default Payment Token
-- [ ] If `save_as_default=true`:
-  - [ ] upsert PaymentToken and mark as default (unset previous default)
-  - [ ] audit token save event (no raw token logging)
+- [x] If `save_as_default=true`:
+  - [x] upsert PaymentToken and mark as default (unset previous default)
+  - [x] audit token save event (no raw token logging)
 
 ### 7.4 Idempotency (Recommended)
 - [ ] Add `Idempotency-Key` header support for checkout confirm
