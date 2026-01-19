@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Mapping
 
 from flask import jsonify
-from flask_jwt_extended import JWTExtendedException
+from flask_jwt_extended.exceptions import JWTExtendedException
 from pydantic import ValidationError
 from werkzeug.exceptions import HTTPException
 
