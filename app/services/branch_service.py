@@ -66,7 +66,7 @@ class BranchService:
         db.session.add(branch)
         db.session.commit()
         AuditService.log_event(entity_type="branch", action="CREATE", entity_id=branch.id)
-        return BranchResponse(**branch.__dict__)
+        return BranchResponse(id=branch.id, name=branch.name, address=branch.address, is_active=branch.is_active)
 
     @staticmethod
     def update_branch(branch_id: UUID, name: str, address: str) -> BranchResponse:
@@ -85,7 +85,7 @@ class BranchService:
             old_value=old_value,
             new_value={"name": name, "address": address},
         )
-        return BranchResponse(**branch.__dict__)
+        return BranchResponse(id=branch.id, name=branch.name, address=branch.address, is_active=branch.is_active)
 
     @staticmethod
     def toggle_branch(branch_id: UUID, active: bool) -> BranchResponse:
@@ -101,7 +101,7 @@ class BranchService:
             entity_id=branch.id,
             new_value={"is_active": active},
         )
-        return BranchResponse(**branch.__dict__)
+        return BranchResponse(id=branch.id, name=branch.name, address=branch.address, is_active=branch.is_active)
 
     @staticmethod
     def create_delivery_slot(

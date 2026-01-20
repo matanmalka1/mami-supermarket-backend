@@ -4,6 +4,8 @@ from pathlib import Path
 from datetime import time
 
 import pytest
+import sys
+from flask_jwt_extended import create_access_token
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -104,3 +106,13 @@ def product_with_inventory(session, test_app):
     session.add(inv)
     session.commit()
     return product, inv, other_branch
+
+
+@pytest.fixture
+def auth_header(test_app):
+    def _build(user):
+        with test_app.app_context():
+            token = create_access_token(identity=str(user.id), additional_claims={"role": user.role.value})
+        return {"Authorization": f"Bearer {token}"}
+
+    return _build

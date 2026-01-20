@@ -6,7 +6,7 @@ import sqlalchemy as sa
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
-from app.models import Audit, Cart, CartItem
+from app.models import Audit, Cart, CartItem, DeliverySlot
 from app.models.enums import FulfillmentType
 from app.schemas.checkout import CheckoutConfirmRequest, CheckoutPreviewRequest
 from app.services.checkout_service import CheckoutService
@@ -91,3 +91,86 @@ def test_payment_danger_zone_logged(session, test_app, users, product_with_inven
         sa.select(Audit).where(Audit.action == "PAYMENT_CAPTURED_NOT_COMMITTED")
     ).scalars().all()
     assert audit_rows, "Expected danger zone audit log when commit fails after payment"
+
+
+def test_checkout_delivery_fee_under_min(session, test_app, users, product_with_inventory):
+    user, _ = users
+    product, inv, _ = product_with_inventory
+    inv.available_quantity = 1
+    session.add(inv)
+    session.commit()
+    cart = _build_cart(session, user.id, product.id, qty=1, price=Decimal("10.00"))
+    with test_app.app_context():
+        test_app.config["DELIVERY_MIN_TOTAL"] = 150
+        test_app.config["DELIVERY_FEE_UNDER_MIN"] = 30
+    preview = CheckoutService.preview(
+        CheckoutPreviewRequest(
+            cart_id=cart.id,
+            fulfillment_type=FulfillmentType.DELIVERY,
+            branch_id=None,
+            delivery_slot_id=None,
+            address="Somewhere 1",
+        )
+    )
+    assert preview.delivery_fee == Decimal("30")
+
+
+def test_checkout_idempotency_reuse(session, users, product_with_inventory, monkeypatch):
+    user, _ = users
+    product, inv, _ = product_with_inventory
+    inv.available_quantity = 5
+    session.add(inv)
+    session.commit()
+    cart = _build_cart(session, user.id, product.id, qty=1, price=Decimal("10.00"))
+    slot = session.query(DeliverySlot).first()
+    monkeypatch.setattr(PaymentService, "charge", lambda *_a, **_k: "ref-idem")
+    payload = CheckoutConfirmRequest(
+        cart_id=cart.id,
+        fulfillment_type=FulfillmentType.DELIVERY,
+        branch_id=None,
+        delivery_slot_id=slot.id,
+        address="Addr",
+        payment_token_id=uuid.uuid4(),
+        save_as_default=False,
+        idempotency_key="same-key",
+    )
+    first = CheckoutService.confirm(payload)
+    second = CheckoutService.confirm(payload)
+    assert second.order_id == first.order_id
+    assert second.payment_reference == "ref-idem"
+
+
+def test_checkout_idempotency_conflict(session, users, product_with_inventory, monkeypatch):
+    user, _ = users
+    product, inv, _ = product_with_inventory
+    inv.available_quantity = 5
+    session.add(inv)
+    session.commit()
+    cart = _build_cart(session, user.id, product.id, qty=1, price=Decimal("10.00"))
+    slot = session.query(DeliverySlot).first()
+    monkeypatch.setattr(PaymentService, "charge", lambda *_a, **_k: "ref-conflict")
+    base_payload = CheckoutConfirmRequest(
+        cart_id=cart.id,
+        fulfillment_type=FulfillmentType.DELIVERY,
+        branch_id=None,
+        delivery_slot_id=slot.id,
+        address="Addr",
+        payment_token_id=uuid.uuid4(),
+        save_as_default=False,
+        idempotency_key="idem-conflict",
+    )
+    CheckoutService.confirm(base_payload)
+    mutated = base_payload.model_copy(update={"payment_token_id": uuid.uuid4()})
+    with pytest.raises(DomainError) as exc:
+        CheckoutService.confirm(mutated)
+    assert exc.value.code == "IDEMPOTENCY_CONFLICT"
+
+
+def test_checkout_saves_payment_preferences(session, test_app, users):
+    user, _ = users
+    CheckoutService._maybe_save_default_payment_token(user.id, uuid.uuid4(), save_as_default=True)
+    db.session.commit()
+    audit_rows = db.session.execute(
+        sa.select(Audit).where(Audit.entity_type == "payment_preferences")
+    ).scalars().all()
+    assert audit_rows

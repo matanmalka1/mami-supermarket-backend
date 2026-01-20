@@ -122,5 +122,6 @@ class CheckoutService:
             entity_type="payment_preferences",
             action="SET_DEFAULT",
             actor_user_id=user_id,
+            entity_id=payment_token_id,
             new_value={"payment_token_id": str(payment_token_id)},
         )
