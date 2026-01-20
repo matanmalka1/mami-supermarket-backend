@@ -68,44 +68,106 @@ Backend API for **Mami Supermarket** – modern online supermarket system suppor
 | Database          | PostgreSQL 15+                        |
 | Production Server | Gunicorn + Uvicorn workers (optional) |
 
-## Project Structure (recommended)
+## Project Structure (Actual)
 
 ```text
-mami-backend/
-├── alembic/
+server/
+├── alembic/                    # Database migrations
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+│       ├── 0001_initial.py
+│       └── 0002_add_idempotency_keys.py
 ├── app/
-│   ├── __init__.py
-│   ├── config.py
+│   ├── __init__.py             # App factory
+│   ├── config.py               # Configuration classes
+│   ├── constants.py            # App-wide constants
 │   ├── extensions.py           # db, jwt, etc.
-│   ├── models/                 # SQLAlchemy models
-│   ├── schemas/                # Pydantic DTOs (req/res)
-│   ├── services/               # business logic
-│   │   ├── checkout.py
+│   ├── models/                 # SQLAlchemy models (15 files)
+│   │   ├── address.py
+│   │   ├── audit.py
+│   │   ├── base.py
+│   │   ├── branch.py
+│   │   ├── cart.py
+│   │   ├── category.py
+│   │   ├── delivery_slot.py
+│   │   ├── enums.py
+│   │   ├── idempotency_key.py
 │   │   ├── inventory.py
 │   │   ├── order.py
+│   │   ├── payment_token.py
+│   │   ├── product.py
+│   │   ├── stock_request.py
+│   │   └── user.py
+│   ├── schemas/                # Pydantic DTOs (10 files)
 │   │   ├── audit.py
-│   │   └── ...
-│   ├── repositories/           # (optional) db access abstraction
-│   ├── routes/                 # Flask Blueprints
-│   │   ├── v1/
-│   │   │   ├── auth.py
-│   │   │   ├── customer.py
-│   │   │   ├── catalog.py
-│   │   │   ├── ops.py
-│   │   │   ├── admin.py
-│   │   │   └── ...
-│   ├── middleware/
 │   │   ├── auth.py
-│   │   ├── ownership.py
-│   │   └── error_handler.py
-│   ├── utils/
-│   └── constants.py
+│   │   ├── branches.py
+│   │   ├── cart.py
+│   │   ├── catalog.py
+│   │   ├── checkout.py
+│   │   ├── common.py
+│   │   ├── ops.py
+│   │   ├── orders.py
+│   │   └── stock_requests.py
+│   ├── services/               # Business logic (12 files)
+│   │   ├── audit_service.py
+│   │   ├── auth_service.py
+│   │   ├── branch_service.py
+│   │   ├── cart_service.py
+│   │   ├── catalog_service.py
+│   │   ├── checkout_service.py
+│   │   ├── checkout_workflow_service.py
+│   │   ├── inventory_service.py
+│   │   ├── ops_service.py
+│   │   ├── order_service.py
+│   │   ├── payment_service.py
+│   │   └── stock_requests_service.py
+│   ├── routes/                 # Flask Blueprints (13 files)
+│   │   ├── admin_branches.py
+│   │   ├── admin_catalog.py
+│   │   ├── admin_utils.py
+│   │   ├── audit.py
+│   │   ├── auth.py
+│   │   ├── branches.py
+│   │   ├── cart.py
+│   │   ├── catalog.py
+│   │   ├── checkout.py
+│   │   ├── health.py
+│   │   ├── ops.py
+│   │   ├── orders.py
+│   │   └── stock_requests.py
+│   ├── middleware/             # Request/response middleware
+│   │   ├── auth.py             # JWT & role checks
+│   │   ├── error_handler.py    # Global error handling
+│   │   └── request_id.py       # Request ID tracking
+│   └── utils/                  # Helpers
+│       ├── logging_config.py
+│       ├── request_utils.py
+│       ├── responses.py
+│       └── security.py
+├── docs/
+│   └── api.md                  # API documentation
+├── scripts/
+│   ├── gunicorn.sh             # Production server script
+│   └── seed.py                 # Database seeding
 ├── tests/
-├── migrations/
-├── .env.example
-├── requirements.txt
-├── Dockerfile
-└── README.md          ← You are here
+│   ├── conftest.py             # Test fixtures
+│   └── test_phase12.py         # Test suite
+├── .env.example                # Environment template
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .pylintrc
+├── .ruff_cache/
+├── agents.md                   # Project agents & rules
+├── alembic.ini                 # Alembic configuration
+├── pyproject.toml              # Project metadata & ruff config
+├── pytest.ini                  # Pytest configuration
+├── readme.md                   ← You are here
+├── requirements.txt            # Python dependencies
+├── run.py                      # Development server entry
+├── TODO.md                     # Project tasks
+└── wsgi.py                     # Production WSGI entry
 ```
 
 ## Main Features
@@ -150,11 +212,11 @@ mami-backend/
 ```bash
 # 1. Clone & enter
 git clone ...
-cd mami-backend
+cd server
 
 # 2. Create & activate virtualenv
-python -m venv .venv
-source .venv/bin/activate    # Windows: .venv\Scripts\activate
+python3 -m venv venv
+source venv/bin/activate    # Windows: venv\Scripts\activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
@@ -169,13 +231,13 @@ cp .env.example .env
 # DELIVERY_SOURCE_BRANCH_ID
 
 # 6. Initialize DB & run migrations
-./venv/bin/alembic upgrade head
+alembic upgrade head
 
 # 7. Seed warehouse + delivery slots (dev)
-./venv/bin/python scripts/seed.py
+python scripts/seed.py
 
 # 8. Run development server
-./venv/bin/python run.py
+python run.py
 # or for production (Gunicorn)
 ./scripts/gunicorn.sh
 ```
@@ -229,18 +291,18 @@ Branch, DeliverySlot, StockRequest
 
 ## Important Endpoints Groups
 
-| Group                  | Base Path                      | Who can use   |
-|------------------------|--------------------------------|---------------|
-| Auth                   | /api/v1/auth                   | Public        |
-| Profile                | /api/v1/me                     | Authenticated |
-| Catalog                | /api/v1/categories, /products  | Everyone      |
-| Cart                   | /api/v1/cart                   | Customer      |
-| Checkout               | /api/v1/checkout               | Customer      |
-| Customer Orders        | /api/v1/orders                 | Customer      |
-| Operations (picking)   | /api/v1/ops/orders             | Employee+     |
-| Stock Requests         | /api/v1/stock-requests         | Employee+     |
-| Admin Stock Requests   | /api/v1/admin/stock-requests   | Manager+      |
-| Admin Audit            | /api/v1/admin/audit            | Manager+      |
+| Group                | Base Path                     | Who can use   |
+| -------------------- | ----------------------------- | ------------- |
+| Auth                 | /api/v1/auth                  | Public        |
+| Profile              | /api/v1/me                    | Authenticated |
+| Catalog              | /api/v1/categories, /products | Everyone      |
+| Cart                 | /api/v1/cart                  | Customer      |
+| Checkout             | /api/v1/checkout              | Customer      |
+| Customer Orders      | /api/v1/orders                | Customer      |
+| Operations (picking) | /api/v1/ops/orders            | Employee+     |
+| Stock Requests       | /api/v1/stock-requests        | Employee+     |
+| Admin Stock Requests | /api/v1/admin/stock-requests  | Manager+      |
+| Admin Audit          | /api/v1/admin/audit           | Manager+      |
 
 ## Checkout Flow – Critical Path
 

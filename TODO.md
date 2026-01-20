@@ -352,3 +352,5 @@ Admin (MANAGER/ADMIN):
 - [x] Publish OpenAPI-like docs (manual) or postman collection
 - [x] Provide sample JSON for top endpoints (auth/cart/checkout/ops/stock)
 - [x] Define frontend error handling rules based on ErrorResponse
+
+
