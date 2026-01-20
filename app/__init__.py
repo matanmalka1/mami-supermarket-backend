@@ -68,11 +68,13 @@ def _register_blueprints(app: Flask) -> None:
 
 def _register_delivery_branch_check(app: Flask) -> None:
     """Validate DELIVERY_SOURCE_BRANCH_ID exists; run once lazily."""
-    from flask import g
+    from flask import g, request
     from .services.branches import BranchService
 
     @app.before_request
     def _ensure_branch():
+        if request.path.startswith("/api/v1/health"):
+            return
         if getattr(g, "_delivery_branch_validated", False):
             return
         try:

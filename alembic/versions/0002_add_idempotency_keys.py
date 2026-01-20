@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 
 revision = "0002_add_idempotency_keys"
@@ -13,6 +14,12 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Initial migration creates all models via Base.metadata.create_all, so the table
+    # may already exist when this revision runs in fresh environments.
+    bind = op.get_bind()
+    if inspect(bind).has_table("idempotency_keys"):
+        return
+
     op.create_table(
         "idempotency_keys",
         sa.Column("id", sa.UUID(), primary_key=True),

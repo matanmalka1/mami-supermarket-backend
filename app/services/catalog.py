@@ -25,6 +25,15 @@ from app.services.audit import AuditService
 
 class CatalogService:
     @staticmethod
+    def _to_category_response(category: Category) -> CategoryResponse:
+        return CategoryResponse(
+            id=category.id,
+            name=category.name,
+            description=category.description,
+            is_active=category.is_active,
+        )
+
+    @staticmethod
     def list_categories(limit: int, offset: int) -> tuple[list[CategoryResponse], int]:
         stmt = (
             sa.select(Category)
@@ -36,7 +45,7 @@ class CatalogService:
         total = db.session.scalar(
             sa.select(sa.func.count()).select_from(Category).where(Category.is_active.is_(True))
         )
-        return ([CategoryResponse(**c.__dict__) for c in categories], total or 0)
+        return ([CatalogService._to_category_response(c) for c in categories], total or 0)
 
     @staticmethod
     def get_category_products(
@@ -125,7 +134,7 @@ class CatalogService:
         session.add(category)
         session.commit()
         AuditService.log_event(entity_type="category", action="CREATE", entity_id=category.id)
-        return CategoryResponse(**category.__dict__)
+        return CatalogService._to_category_response(category)
 
     @staticmethod
     def update_category(category_id: UUID, name: str, description: str | None) -> CategoryResponse:
@@ -145,7 +154,7 @@ class CatalogService:
             old_value=old_value,
             new_value={"name": name, "description": description},
         )
-        return CategoryResponse(**category.__dict__)
+        return CatalogService._to_category_response(category)
 
     @staticmethod
     def toggle_category(category_id: UUID, active: bool) -> CategoryResponse:
@@ -162,7 +171,7 @@ class CatalogService:
             entity_id=category.id,
             new_value={"is_active": active},
         )
-        return CategoryResponse(**category.__dict__)
+        return CatalogService._to_category_response(category)
 
     @staticmethod
     def create_product(
