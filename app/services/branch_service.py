@@ -5,7 +5,7 @@ from ..extensions import db
 from ..middleware.error_handler import DomainError
 from ..models import Branch, DeliverySlot
 from ..schemas.branches import BranchResponse, DeliverySlotResponse
-from .audit import AuditService
+from .audit_service import AuditService
 
 class BranchService:
     @staticmethod

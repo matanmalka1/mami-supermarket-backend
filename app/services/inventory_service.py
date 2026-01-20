@@ -9,7 +9,7 @@ from ..extensions import db
 from ..middleware.error_handler import DomainError
 from ..models import Inventory
 from ..schemas.branches import InventoryListResponse, InventoryResponse, InventoryUpdateRequest
-from .audit import AuditService
+from .audit_service import AuditService
 
 
 class InventoryService:

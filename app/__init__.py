@@ -5,7 +5,7 @@ from .config import AppConfig
 from .extensions import db, jwt, limiter
 from .middleware import register_middlewares
 from .utils.logging_config import setup_structured_logging
-from .routes.v1 import (
+from .routes import (
     admin_branches,
     admin_catalog,
     auth,
