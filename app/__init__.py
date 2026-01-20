@@ -61,6 +61,8 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(audit_routes.blueprint, url_prefix="/api/v1/admin/audit")
     app.register_blueprint(admin_catalog_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_branches_routes.blueprint, url_prefix="/api/v1/admin")
+    # Health endpoints should not be rate-limited.
+    limiter.exempt(health_routes.blueprint)
 
 def _register_delivery_branch_check(app: Flask) -> None:
     """Validate DELIVERY_SOURCE_BRANCH_ID exists; run once lazily."""
