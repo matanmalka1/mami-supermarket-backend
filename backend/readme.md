@@ -1,92 +1,335 @@
 # Mami Supermarket Backend
 
-Flask + PostgreSQL backend for a real-inventory, multi-branch supermarket with tokenized payments and audit-first workflows.
+**Flask + PostgreSQL · Real Inventory · Multi-Branch · Tokenized Payments · Audit Trail**
 
 ```text
 | \/ | (_) | |
-| \ / | \__ _ _ __ _ | |
+| \ / | \_\_ _ _ \_\_ _ | |
 | |\/| |/ _` | '_ ` _ \ |
 | | | | (_| | | | | | |
-|_| |_|\__,_|_| |_| |_|
+|_| |_|\__,_|_| |_| |\_|
+          Supermarket · Online Ordering System
 ```
 
-## What this backend delivers
-- Real per-branch inventory (warehouse + stores) with soft-delete everywhere
-- Checkout with pessimistic locking, tokenized card payments, and idempotency keys
-- Cart, catalog, and orders with ownership checks and RBAC across customer/employee/manager/admin
-- Ops workflows: picking → missing → ready, plus stock-request approvals
-- Full audit trail (old/new values) written inside the same DB transaction
+## Table of Contents
 
-## Tech stack
-- Python 3.11+, Flask, Flask-SQLAlchemy, Flask-JWT-Extended, Flask-Limiter, Flask-CORS
-- PostgreSQL + Alembic migrations
-- SQLAlchemy ORM + Pydantic DTOs
-- httpx for payment provider calls
-- pytest + pytest-cov, ruff for linting
+1. [Overview](#overview)
+2. [Key Business Rules](#key-business-rules)
+3. [Tech Stack](#tech-stack)
+4. [Project Structure](#project-structure)
+5. [Main Features](#main-features)
+6. [Roles & Permissions](#roles--permissions)
+7. [Important Concepts](#important-concepts)
+8. [Getting Started](#getting-started)
+9. [Environment Variables](#environment-variables)
+10. [Database Models Overview](#database-models-overview)
+11. [Important Endpoints Groups](#important-endpoints-groups)
+12. [Checkout Flow – Critical Path](#checkout-flow--critical-path)
+13. [Audit & Security Philosophy](#audit--security-philosophy)
+14. [Development Guidelines & Conventions](#development-guidelines--conventions)
+15. [Production Recommendations](#production-recommendations)
+16. [API Samples](docs/api.md)
 
-## Directory map
+## Overview
+
+Backend API for **Mami Supermarket** – modern online supermarket system supporting:
+
+- Real per-branch inventory (including central warehouse)
+- Customer web shopping + cart
+- Delivery (weekly days + 2-hour windows) & branch pickup
+- Credit card tokenization payments
+- Employee picking workflow + missing items handling
+- Employee → Manager inventory update requests & approvals
+- Strong audit trail with old/new values (transaction-safe)
+- Role-based access control (RBAC) with ownership checks
+
+## Key Business Rules (2026 edition)
+
+- Cart exists only for registered customers
+- Inventory is real and per-branch (including warehouse)
+- Delivery always deducts from warehouse branch (configurable ID)
+- Delivery minimum ₪150 → free delivery / ₪30 fee under minimum
+- Payment → credit card tokenization only
+- Soft-delete everywhere (is_active flag)
+- Pessimistic locking during checkout confirmation
+- Mandatory audit logging with old/new JSON values in same transaction
+
+## Tech Stack
+
+| Layer             | Technology                            |
+| ----------------- | ------------------------------------- |
+| Language          | Python 3.11+                          |
+| Web Framework     | Flask                                 |
+| ORM               | SQLAlchemy 2.x                        |
+| Migrations        | Alembic                               |
+| Validation        | Pydantic v2                           |
+| Authentication    | JWT (Flask-JWT-Extended)              |
+| Async HTTP        | httpx (payment provider calls)        |
+| Database          | PostgreSQL 15+                        |
+| Production Server | Gunicorn + Uvicorn workers (optional) |
+
+## Project Structure (Actual)
+
 ```text
-backend/
-├── app/                 # Flask app factory, blueprints, services, models, schemas
-├── alembic/             # DB migrations
-├── docs/api.md          # HTTP contract reference
-├── scripts/             # gunicorn entry + seed data
-├── tests/               # pytest suite for auth, checkout, ops, etc.
-├── run.py               # local dev server (debug)
-├── wsgi.py              # production entrypoint
-├── requirements.txt     # Python deps
-└── .env.example         # env template
+server/
+├── alembic/                    # Database migrations
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+│       ├── 0001_initial.py
+│       └── 0002_add_idempotency_keys.py
+├── app/
+│   ├── __init__.py             # App factory
+│   ├── config.py               # Configuration classes
+│   ├── constants.py            # App-wide constants
+│   ├── extensions.py           # db, jwt, etc.
+│   ├── models/                 # SQLAlchemy models (15 files)
+│   │   ├── address.py
+│   │   ├── audit.py
+│   │   ├── base.py
+│   │   ├── branch.py
+│   │   ├── cart.py
+│   │   ├── category.py
+│   │   ├── delivery_slot.py
+│   │   ├── enums.py
+│   │   ├── idempotency_key.py
+│   │   ├── inventory.py
+│   │   ├── order.py
+│   │   ├── payment_token.py
+│   │   ├── product.py
+│   │   ├── stock_request.py
+│   │   └── user.py
+│   ├── schemas/                # Pydantic DTOs (10 files)
+│   │   ├── audit.py
+│   │   ├── auth.py
+│   │   ├── branches.py
+│   │   ├── cart.py
+│   │   ├── catalog.py
+│   │   ├── checkout.py
+│   │   ├── common.py
+│   │   ├── ops.py
+│   │   ├── orders.py
+│   │   └── stock_requests.py
+│   ├── services/               # Business logic (12 files)
+│   │   ├── audit_service.py
+│   │   ├── auth_service.py
+│   │   ├── branch_service.py
+│   │   ├── cart_service.py
+│   │   ├── catalog_service.py
+│   │   ├── checkout_service.py
+│   │   ├── checkout_workflow_service.py
+│   │   ├── inventory_service.py
+│   │   ├── ops_service.py
+│   │   ├── order_service.py
+│   │   ├── payment_service.py
+│   │   └── stock_requests_service.py
+│   ├── routes/                 # Flask Blueprints (13 files)
+│   │   ├── admin_branches.py
+│   │   ├── admin_catalog.py
+│   │   ├── admin_utils.py
+│   │   ├── audit.py
+│   │   ├── auth.py
+│   │   ├── branches.py
+│   │   ├── cart.py
+│   │   ├── catalog.py
+│   │   ├── checkout.py
+│   │   ├── health.py
+│   │   ├── ops.py
+│   │   ├── orders.py
+│   │   └── stock_requests.py
+│   ├── middleware/             # Request/response middleware
+│   │   ├── auth.py             # JWT & role checks
+│   │   ├── error_handler.py    # Global error handling
+│   │   └── request_id.py       # Request ID tracking
+│   └── utils/                  # Helpers
+│       ├── logging_config.py
+│       ├── request_utils.py
+│       ├── responses.py
+│       └── security.py
+├── docs/
+│   └── api.md                  # API documentation
+├── scripts/
+│   ├── gunicorn.sh             # Production server script
+│   └── seed.py                 # Database seeding
+├── tests/
+│   ├── conftest.py             # Test fixtures
+│   └── test_phase12.py         # Test suite
+├── .env.example                # Environment template
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .pylintrc
+├── .ruff_cache/
+├── agents.md                   # Project agents & rules
+├── alembic.ini                 # Alembic configuration
+├── pyproject.toml              # Project metadata & ruff config
+├── pytest.ini                  # Pytest configuration
+├── readme.md                   ← You are here
+├── requirements.txt            # Python dependencies
+├── run.py                      # Development server entry
+├── TODO.md                     # Project tasks
+└── wsgi.py                     # Production WSGI entry
 ```
 
-## Quickstart (local)
-```bash
-# 1) Python + virtualenv
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+## Main Features
 
-# 2) Install deps
+- Customer registration & profile management
+- Multi-branch catalog with real-time stock visibility
+- Cart (one active per user)
+- Two fulfillment types: Delivery / Pickup
+- Pessimistic locking + double-check during checkout
+- Tokenized credit-card payments (no card data stored)
+- Order fulfillment workflow (picking → missing → ready/missing)
+- Employee inventory update requests → manager approval
+- Full audit trail (who changed what, before & after)
+
+## Roles & Permissions (Quick Summary)
+
+| Action                             | Customer | Employee | Manager | Admin |
+| ---------------------------------- | :------: | :------: | :-----: | :---: |
+| Browse catalog                     |    ✓     |    ✓     |    ✓    |   ✓   |
+| Manage own cart & checkout         |    ✓     |          |         |       |
+| View / cancel own orders (CREATED) |    ✓     |          |    ✓    |   ✓   |
+| View all orders + picking          |          |    ✓     |    ✓    |   ✓   |
+| Change order status (limited)      |          |    ✓     |  full   | full  |
+| Direct inventory change            |          |          |    ✓    |   ✓   |
+| Create stock update request        |          |    ✓     |    ✓    |   ✓   |
+| Approve/reject stock requests      |          |          |    ✓    |   ✓   |
+| Bulk review stock requests         |          |          |    ✓    |   ✓   |
+| View audit logs                    |          |          |    ✓    |   ✓   |
+
+## Important Concepts
+
+1. **Warehouse branch** – special branch used for all deliveries
+2. **Pessimistic locking** – SELECT ... FOR UPDATE during checkout confirmation
+3. **Danger Zone** – payment succeeded but DB commit failed → needs reconciliation
+4. **Audit must be transactional** – same transaction as the change or nothing
+5. **Soft delete only** – is_active flag everywhere
+6. **Ownership middleware** – customers see only their resources (404 on mismatch)
+7. **Stock requests** – employees cannot change inventory directly
+
+## Getting Started
+
+```bash
+# 1. Clone & enter
+git clone ...
+cd server
+
+# 2. Create & activate virtualenv
+python3 -m venv venv
+source venv/bin/activate    # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 3) Configure env
+# 4. Copy example env
 cp .env.example .env
-# Set DATABASE_URL, JWT_SECRET_KEY, DELIVERY_SOURCE_BRANCH_ID, CORS_ALLOWED_ORIGINS
 
-# 4) Migrate + seed
+# 5. Edit .env !! important !!
+# especially:
+# DATABASE_URL
+# JWT_SECRET_KEY
+# DELIVERY_SOURCE_BRANCH_ID
+
+# 6. Initialize DB & run migrations
 alembic upgrade head
-python scripts/seed.py    # warehouse + delivery slots for dev
 
-# 5) Run
-python run.py             # http://localhost:5000
-# Production: ./scripts/gunicorn.sh
+# 7. Seed warehouse + delivery slots (dev)
+python scripts/seed.py
+
+# 8. Run development server
+python run.py
+# or for production (Gunicorn)
+./scripts/gunicorn.sh
 ```
 
-## Environment
-| Key | Required | Purpose |
-| --- | :------: | ------- |
-| `DATABASE_URL` | ✓ | PostgreSQL URI for SQLAlchemy |
-| `JWT_SECRET_KEY` | ✓ | Secret for access/refresh tokens |
-| `DELIVERY_SOURCE_BRANCH_ID` | ✓ | Branch ID used as the delivery warehouse |
-| `CORS_ALLOWED_ORIGINS` | ✓ | Allowed origins for the frontend |
-| `DELIVERY_MIN_TOTAL` |  | Minimum cart total before free delivery (default 150) |
-| `DELIVERY_FEE_UNDER_MIN` |  | Delivery fee when under minimum (default 30) |
-| `DEFAULT_LIMIT` / `MAX_LIMIT` |  | Pagination defaults for list endpoints |
+## Environment Variables (.env)
 
-## Core flows to know
-- Checkout confirm locks inventory rows (`SELECT ... FOR UPDATE`), charges tokenized payment, writes audit rows, then commits; any failure rolls back before payment capture is marked.
-- Ownership middleware returns 404 when a user hits a resource they don’t own.
-- Rate limiting is enabled globally (`200/day`, `50/hour`) except for health endpoints.
-- Delivery orders always deduct from the warehouse branch ID provided in env.
+```bash
+# Required
+DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/mami
 
-## Developing & testing
-- Run tests: `pytest`
-- Lint/format: `ruff check .`
-- Regenerate DB after schema changes: add an Alembic migration under `alembic/versions/` and run `alembic upgrade head`.
-- Seed data can be rerun; duplicate inserts are ignored when constraints block them.
+JWT_SECRET_KEY=super-long-random-secret-at-least-64-chars
 
-## API surface
-- Routes are namespaced under `/api/v1/*` (auth, catalog, cart, checkout, orders, ops, admin, audit).
-- Detailed request/response samples live in `docs/api.md`.
+# Warehouse branch (must exist in DB!)
+DELIVERY_SOURCE_BRANCH_ID=uuid-or-int-of-warehouse
 
-## Deployment notes
-- Use `wsgi.py` or `scripts/gunicorn.sh` behind a process manager (systemd/supervisor) with a PostgreSQL instance reachable by `DATABASE_URL`.
-- Ensure `DELIVERY_SOURCE_BRANCH_ID` exists in the DB before serving traffic (validated on startup per request).
+# Money rules
+DELIVERY_MIN_TOTAL=150
+DELIVERY_FEE_UNDER_MIN=30
+
+# Delivery time windows
+DELIVERY_START_TIME=06:00
+DELIVERY_END_TIME=22:00
+DELIVERY_SLOT_HOURS=2
+
+# Pagination defaults
+DEFAULT_LIMIT=50
+MAX_LIMIT=200
+
+# Optional / recommended
+PAYMENT_PROVIDER_API_KEY=...
+PAYMENT_PROVIDER_URL=https://...
+LOG_LEVEL=INFO
+```
+
+## Database Models Overview (main ones)
+
+```text
+User → Address → PaymentToken
+          ↓
+       Category → Product ← Inventory (per branch)
+                           ↓
+                        Cart → CartItem
+                           ↓
+                        Order → OrderItem (snapshots!)
+                           ↳ OrderDeliveryDetails / OrderPickupDetails
+                           ↳ Audit (old/new JSON)
+```
+
+Also:
+Branch, DeliverySlot, StockRequest
+
+## Important Endpoints Groups
+
+| Group                | Base Path                     | Who can use   |
+| -------------------- | ----------------------------- | ------------- |
+| Auth                 | /api/v1/auth                  | Public        |
+| Profile              | /api/v1/me                    | Authenticated |
+| Catalog              | /api/v1/categories, /products | Everyone      |
+| Cart                 | /api/v1/cart                  | Customer      |
+| Checkout             | /api/v1/checkout              | Customer      |
+| Customer Orders      | /api/v1/orders                | Customer      |
+| Operations (picking) | /api/v1/ops/orders            | Employee+     |
+| Stock Requests       | /api/v1/stock-requests        | Employee+     |
+| Admin Stock Requests | /api/v1/admin/stock-requests  | Manager+      |
+| Admin Audit          | /api/v1/admin/audit           | Manager+      |
+
+## Checkout Flow – Critical Path
+
+The checkout process is the most critical and sensitive part of the system. It is designed as a multi-stage flow to ensure data consistency and financial safety.
+
+**Preview**: Performs an optimistic stock check and calculates totals, taxes, and fees for the user to review.
+
+**Confirm**: A strictly orchestrated transactional process:
+
+1. **BEGIN TRANSACTION**
+2. **Pessimistic Locking**: SELECT inventory FOR UPDATE
+3. **Payment**: Charge token via external provider
+4. **Success Path**:
+   - Create Order + snapshots
+   - Decrement inventory
+   - Write Audit entries
+   - COMMIT → 201 Order created
+5. **Failure Paths**:
+   - Stock insufficient → ROLLBACK → 409 INSUFFICIENT_STOCK
+   - Payment failed → ROLLBACK → 400 PAYMENT_FAILED
+
+**Idempotency-Key**: This header is mandatory for confirmation requests to prevent double-charging.
+
+## Audit & Security Philosophy
+
+- **Never trust frontend** – always re-validate stock, price, permissions
+- **Audit is sacred** – must be in same transaction as change
+- **404 for ownership violation** – better security than 403
+- **Idempotency-Key** highly recommended for /confirm
+- **Danger-zone logging** – payment captured but commit failed
