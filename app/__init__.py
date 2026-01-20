@@ -6,18 +6,18 @@ from .extensions import db, jwt, limiter
 from .middleware import register_middlewares
 from .utils.logging_config import setup_structured_logging
 from .routes import (
-    admin_branches,
-    admin_catalog,
-    auth,
-    branches,
-    cart,
-    catalog,
-    checkout,
-    health,
-    stock_requests,
-    ops,
-    orders,
-    audit,
+    admin_branches_routes,
+    admin_catalog_routes,
+    auth_routes,
+    branches_routes,
+    cart_routes,
+    catalog_routes,
+    checkout_routes,
+    health_routes,
+    stock_requests_routes,
+    ops_routes,
+    orders_routes,
+    audit_routes,
 )
 
 def create_app(config: AppConfig | None = None) -> Flask:
@@ -49,18 +49,18 @@ def _register_extensions(app: Flask) -> None:
     limiter.init_app(app)
 
 def _register_blueprints(app: Flask) -> None:
-    app.register_blueprint(auth.blueprint, url_prefix="/api/v1/auth")
-    app.register_blueprint(catalog.blueprint, url_prefix="/api/v1/catalog")
-    app.register_blueprint(health.blueprint, url_prefix="/api/v1/health")
-    app.register_blueprint(branches.blueprint, url_prefix="/api/v1")
-    app.register_blueprint(cart.blueprint, url_prefix="/api/v1/cart")
-    app.register_blueprint(checkout.blueprint, url_prefix="/api/v1/checkout")
-    app.register_blueprint(stock_requests.blueprint, url_prefix="/api/v1/stock-requests")
-    app.register_blueprint(orders.blueprint, url_prefix="/api/v1/orders")
-    app.register_blueprint(ops.blueprint, url_prefix="/api/v1/ops")
-    app.register_blueprint(audit.blueprint, url_prefix="/api/v1/admin/audit")
-    app.register_blueprint(admin_catalog.blueprint, url_prefix="/api/v1/admin")
-    app.register_blueprint(admin_branches.blueprint, url_prefix="/api/v1/admin")
+    app.register_blueprint(auth_routes.blueprint, url_prefix="/api/v1/auth")
+    app.register_blueprint(catalog_routes.blueprint, url_prefix="/api/v1/catalog")
+    app.register_blueprint(health_routes.blueprint, url_prefix="/api/v1/health")
+    app.register_blueprint(branches_routes.blueprint, url_prefix="/api/v1")
+    app.register_blueprint(cart_routes.blueprint, url_prefix="/api/v1/cart")
+    app.register_blueprint(checkout_routes.blueprint, url_prefix="/api/v1/checkout")
+    app.register_blueprint(stock_requests_routes.blueprint, url_prefix="/api/v1/stock-requests")
+    app.register_blueprint(orders_routes.blueprint, url_prefix="/api/v1/orders")
+    app.register_blueprint(ops_routes.blueprint, url_prefix="/api/v1/ops")
+    app.register_blueprint(audit_routes.blueprint, url_prefix="/api/v1/admin/audit")
+    app.register_blueprint(admin_catalog_routes.blueprint, url_prefix="/api/v1/admin")
+    app.register_blueprint(admin_branches_routes.blueprint, url_prefix="/api/v1/admin")
 
 def _register_delivery_branch_check(app: Flask) -> None:
     """Validate DELIVERY_SOURCE_BRANCH_ID exists; run once lazily."""
