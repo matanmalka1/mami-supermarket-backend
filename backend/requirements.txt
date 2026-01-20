@@ -5,6 +5,8 @@ Flask-JWT-Extended==4.7.1
 Flask-Limiter==4.1.1
 Flask-SQLAlchemy==3.1.1
 passlib[bcrypt]==1.7.4
+# passlib 1.7.4 breaks with bcrypt>=4 due to long-password checks during backend detection
+bcrypt<4.0
 pydantic==2.12.5
 psycopg[binary]==3.3.2
 pytest==9.0.2
