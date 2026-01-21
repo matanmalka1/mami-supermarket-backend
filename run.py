@@ -1,5 +1,11 @@
 """Convenience runner for local development."""
 
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load .env before creating app
+load_dotenv(Path(__file__).parent / ".env")
+
 from app import create_app
 
 

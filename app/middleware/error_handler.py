@@ -63,5 +63,8 @@ def register_error_handlers(app) -> None:
 
     @app.errorhandler(Exception)
     def handle_unhandled_error(error: Exception):
+        import traceback
+        app.logger.error(f"Unhandled error: {error}")
+        app.logger.error(traceback.format_exc())
         payload = error_envelope("INTERNAL_ERROR", "Unexpected error")
         return jsonify(payload), 500

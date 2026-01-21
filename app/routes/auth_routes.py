@@ -12,6 +12,7 @@ from app.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
     RegisterRequest,
+    UserResponse,
 )
 from app.services.auth_service import AuthService
 
@@ -26,6 +27,24 @@ def _parse_payload(request_body: dict | None) -> dict:
 
 def _build_response(payload: AuthResponse):
     return jsonify(success_envelope(payload.model_dump()))
+
+@blueprint.get("/me")
+@jwt_required()
+def me():
+    user_id = get_jwt_identity()
+    user = AuthService.get_user(user_id)
+    if not user:
+        raise DomainError("USER_NOT_FOUND", "User not found", status_code=404)
+    return jsonify(
+        success_envelope(
+            UserResponse(
+                id=user.id,
+                email=user.email,
+                full_name=user.full_name,
+                role=user.role,
+            )
+        )
+    )
 
 
 @blueprint.post("/register")
