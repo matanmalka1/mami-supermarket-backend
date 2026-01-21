@@ -30,7 +30,6 @@ class CheckoutPreviewResponse(DefaultModel):
 class CheckoutConfirmRequest(DefaultModel):
     cart_id: UUID
     payment_token_id: UUID
-    idempotency_key: str
     fulfillment_type: FulfillmentType | None = None
     branch_id: UUID | None = None
     delivery_slot_id: UUID | None = None

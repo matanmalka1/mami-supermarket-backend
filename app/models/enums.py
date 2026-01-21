@@ -40,3 +40,8 @@ class CartStatus(str, Enum):
     ACTIVE = "ACTIVE"
     CHECKED_OUT = "CHECKED_OUT"
     ABANDONED = "ABANDONED"
+
+class IdempotencyStatus(str, Enum):
+    IN_PROGRESS = "IN_PROGRESS"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"

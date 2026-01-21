@@ -275,17 +275,32 @@ Preview order totals and fees before confirmation.
 Confirm and create order with payment.
 
 - **Auth**: Required (JWT)
-- **Body**: `{ cart_id, branch_id, delivery_slot_id, delivery_address, payment_method, payment_token, idempotency_key }`
+- **Headers**: 
+  - **`Idempotency-Key`** (required): Unique string to prevent duplicate orders
+- **Body**: `{ cart_id, branch_id, delivery_slot_id, delivery_address, payment_method, payment_token }`
+- **Idempotency Behavior**:
+  - First request with a key: Creates new order
+  - Repeated request with same key + same payload: Returns same order (201)
+  - Same key + different payload: Returns 409 `IDEMPOTENCY_KEY_REUSE_MISMATCH`
+  - Same key while processing: Returns 409 `IDEMPOTENCY_IN_PROGRESS`
 - **Process**:
-  1. Lock inventory rows (FOR UPDATE)
-  2. Verify stock availability
-  3. Charge payment
-  4. Create order + snapshots
-  5. Decrement inventory
-  6. Write audit log
-  7. Commit transaction
+  1. Validate `Idempotency-Key` header (400 if missing)
+  2. Check/create idempotency record with IN_PROGRESS status
+  3. Lock inventory rows (FOR UPDATE)
+  4. Verify stock availability
+  5. Charge payment
+  6. Create order + snapshots
+  7. Decrement inventory
+  8. Write audit log
+  9. Mark idempotency as SUCCEEDED
+  10. Commit transaction
 - **Response**: Order object with order_number (201)
-- **Errors**: INSUFFICIENT_STOCK, PAYMENT_FAILED, etc.
+- **Errors**: 
+  - `MISSING_IDEMPOTENCY_KEY` (400) - Header not provided
+  - `INSUFFICIENT_STOCK` (409) - Not enough inventory
+  - `IDEMPOTENCY_KEY_REUSE_MISMATCH` (409) - Same key, different payload
+  - `IDEMPOTENCY_IN_PROGRESS` (409) - Request already processing
+  - `PAYMENT_FAILED` (402) - Payment charge failed
 
 ---
 
@@ -620,5 +635,10 @@ Health check endpoint (no auth, no rate limit).
 3. **Ownership**: Customers can only access their own carts and orders (404 for unauthorized access).
 4. **Inventory Locking**: Checkout uses pessimistic locking (`FOR UPDATE`) to prevent overselling.
 5. **Audit Trail**: All sensitive operations (inventory changes, order status, payments) are logged.
-6. **Idempotency**: Checkout confirm supports idempotency keys to prevent duplicate orders.
+6. **Idempotency**: 
+   - Checkout confirm requires `Idempotency-Key` header (not in body)
+   - Keys are unique per user and expire after 24 hours
+   - Status tracking: IN_PROGRESS → SUCCEEDED/FAILED
+   - Concurrent requests with same key return 409 IDEMPOTENCY_IN_PROGRESS
+   - Same key with different payload returns 409 IDEMPOTENCY_KEY_REUSE_MISMATCH
 7. **Delivery Source**: All delivery orders deduct from `DELIVERY_SOURCE_BRANCH_ID` branch.

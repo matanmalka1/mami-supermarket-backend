@@ -25,6 +25,11 @@ def preview():
 @blueprint.post("/confirm")
 @jwt_required()
 def confirm():
+    # Extract idempotency key from header (required)
+    idempotency_key = request.headers.get("Idempotency-Key")
+    if not idempotency_key:
+        raise DomainError("MISSING_IDEMPOTENCY_KEY", "Idempotency-Key header is required", status_code=400)
+    
     payload = _parse(CheckoutConfirmRequest, request.get_json())
-    result = CheckoutService.confirm(payload)
+    result = CheckoutService.confirm(payload, idempotency_key)
     return jsonify(success_envelope(result)), 201

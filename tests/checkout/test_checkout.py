@@ -25,7 +25,8 @@ def _build_cart(session, user_id, product_id, qty, price):
     return cart
 
 
-def _cart_payload(cart, *, fulfillment, branch_id, slot_id=None, addr=None, key="k1"):
+def _cart_payload(cart, *, fulfillment, branch_id, slot_id=None, addr=None):
+    """Create checkout confirm request (without idempotency_key in body)."""
     return CheckoutConfirmRequest(
         cart_id=cart.id,
         fulfillment_type=fulfillment,
@@ -34,7 +35,6 @@ def _cart_payload(cart, *, fulfillment, branch_id, slot_id=None, addr=None, key=
         address=addr,
         payment_token_id=uuid.uuid4(),
         save_as_default=False,
-        idempotency_key=key,
     )
 
 
@@ -50,7 +50,8 @@ def test_checkout_insufficient_stock(session, test_app, users, product_with_inve
     user, product, _, branch, cart = _prep_cart(session, users, product_with_inventory, qty=2)
     with pytest.raises(DomainError) as exc:
         CheckoutService.confirm(
-            _cart_payload(cart, fulfillment=FulfillmentType.PICKUP, branch_id=branch.id)
+            _cart_payload(cart, fulfillment=FulfillmentType.PICKUP, branch_id=branch.id),
+            idempotency_key="test-key-1"
         )
     assert exc.value.code == "INSUFFICIENT_STOCK"
 
@@ -74,17 +75,16 @@ def test_payment_danger_zone_logged(session, test_app, users, product_with_inven
         cart,
         fulfillment=FulfillmentType.PICKUP,
         branch_id=inv.branch_id,
-        key="danger",
     )
 
-    def _fail_store(*_args, **_kwargs):
+    def _fail_commit(*_args, **_kwargs):
         raise RuntimeError("boom")
 
     monkeypatch.setattr(PaymentService, "charge", lambda *_args, **_kw: "ref123")
-    monkeypatch.setattr(CheckoutService, "_store_idempotency", _fail_store)
+    monkeypatch.setattr(db.session, "commit", _fail_commit)
 
     with pytest.raises(RuntimeError):
-        CheckoutService.confirm(payload)
+        CheckoutService.confirm(payload, idempotency_key="danger-key")
     audit_rows = db.session.execute(
         sa.select(Audit).where(Audit.action == "PAYMENT_CAPTURED_NOT_COMMITTED")
     ).scalars().all()
@@ -107,6 +107,7 @@ def test_checkout_delivery_fee_under_min(session, test_app, users, product_with_
     assert preview.delivery_fee == Decimal("30")
 
 def test_checkout_idempotency_reuse(session, users, product_with_inventory, monkeypatch):
+    """Test that same idempotency key returns same response."""
     user, product, inv, _, cart = _prep_cart(session, users, product_with_inventory)
     slot = session.query(DeliverySlot).first()
     monkeypatch.setattr(PaymentService, "charge", lambda *_a, **_k: "ref-idem")
@@ -116,14 +117,14 @@ def test_checkout_idempotency_reuse(session, users, product_with_inventory, monk
         branch_id=None,
         slot_id=slot.id,
         addr="Addr",
-        key="same-key",
     )
-    first = CheckoutService.confirm(payload)
-    second = CheckoutService.confirm(payload)
+    first = CheckoutService.confirm(payload, idempotency_key="same-key")
+    second = CheckoutService.confirm(payload, idempotency_key="same-key")
     assert second.order_id == first.order_id
     assert second.payment_reference == "ref-idem"
 
-def test_checkout_idempotency_conflict(session, users, product_with_inventory, monkeypatch):
+def test_checkout_idempotency_key_reuse_mismatch(session, users, product_with_inventory, monkeypatch):
+    """Test that same key with different payload raises IDEMPOTENCY_KEY_REUSE_MISMATCH."""
     user, product, inv, _, cart = _prep_cart(session, users, product_with_inventory)
     slot = session.query(DeliverySlot).first()
     monkeypatch.setattr(PaymentService, "charge", lambda *_a, **_k: "ref-conflict")
@@ -133,13 +134,51 @@ def test_checkout_idempotency_conflict(session, users, product_with_inventory, m
         branch_id=None,
         slot_id=slot.id,
         addr="Addr",
-        key="idem-conflict",
     )
-    CheckoutService.confirm(base_payload)
-    mutated = base_payload.model_copy(update={"payment_token_id": uuid.uuid4()})
+    CheckoutService.confirm(base_payload, idempotency_key="idem-conflict")
+    
+    # Create new cart with different content
+    cart2 = _build_cart(session, user.id, product.id, qty=3, price=Decimal("20.00"))
+    mutated = _cart_payload(
+        cart2,
+        fulfillment=FulfillmentType.DELIVERY,
+        branch_id=None,
+        slot_id=slot.id,
+        addr="Different Address",
+    )
     with pytest.raises(DomainError) as exc:
-        CheckoutService.confirm(mutated)
-    assert exc.value.code == "IDEMPOTENCY_CONFLICT"
+        CheckoutService.confirm(mutated, idempotency_key="idem-conflict")
+    assert exc.value.code == "IDEMPOTENCY_KEY_REUSE_MISMATCH"
+
+def test_checkout_idempotency_in_progress(session, users, product_with_inventory, monkeypatch):
+    """Test that concurrent requests with same key get IDEMPOTENCY_IN_PROGRESS."""
+    from app.models import IdempotencyKey
+    from app.models.enums import IdempotencyStatus
+    
+    user, product, inv, _, cart = _prep_cart(session, users, product_with_inventory)
+    slot = session.query(DeliverySlot).first()
+    
+    # Manually create IN_PROGRESS record
+    idem_key = IdempotencyKey(
+        user_id=user.id,
+        key="in-progress-key",
+        request_hash="somehash",
+        status=IdempotencyStatus.IN_PROGRESS,
+    )
+    session.add(idem_key)
+    session.commit()
+    
+    payload = _cart_payload(
+        cart,
+        fulfillment=FulfillmentType.DELIVERY,
+        branch_id=None,
+        slot_id=slot.id,
+        addr="Addr",
+    )
+    
+    with pytest.raises(DomainError) as exc:
+        CheckoutService.confirm(payload, idempotency_key="in-progress-key")
+    assert exc.value.code == "IDEMPOTENCY_IN_PROGRESS"
 
 def test_checkout_saves_payment_preferences(session, test_app, users):
     user, _ = users

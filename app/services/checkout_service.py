@@ -42,22 +42,28 @@ class CheckoutService:
         )
 
     @staticmethod
-    def confirm(payload: CheckoutConfirmRequest) -> CheckoutConfirmResponse:
+    def confirm(payload: CheckoutConfirmRequest, idempotency_key: str) -> CheckoutConfirmResponse:
         branch_id = CheckoutBranchValidator.resolve_branch(payload.fulfillment_type, payload.branch_id)
         cart = CheckoutCartLoader.load(payload.cart_id, for_update=True)
         CheckoutBranchValidator.validate_delivery_slot(payload.fulfillment_type, payload.delivery_slot_id, branch_id)
 
         request_hash = CheckoutService._hash_request(payload)
-        idempotency_record = CheckoutService._check_idempotency(cart.user_id, payload.idempotency_key, request_hash)
-        if idempotency_record:
-            if idempotency_record.status_code == 201:
-                return CheckoutConfirmResponse.model_validate(idempotency_record.response_payload)
-            raise DomainError("IDEMPOTENCY_CONFLICT", "Request payload differs for same Idempotency-Key", status_code=409)
+        
+        # Check or create IN_PROGRESS idempotency record
+        idempotency_record, is_new = CheckoutIdempotencyManager.get_or_create_in_progress(
+            cart.user_id, idempotency_key, request_hash
+        )
+        
+        # If not new, return cached response (SUCCEEDED status)
+        if not is_new:
+            return CheckoutConfirmResponse.model_validate(idempotency_record.response_payload)
 
         inventory = CheckoutInventoryManager(branch_id)
         inv_map = inventory.lock_inventory(cart.items)
         missing = inventory.missing_items(cart.items, inv_map)
         if missing:
+            CheckoutIdempotencyManager.mark_failed(idempotency_record)
+            db.session.commit()
             raise DomainError(
                 "INSUFFICIENT_STOCK",
                 "Insufficient stock for items",
@@ -75,19 +81,18 @@ class CheckoutService:
             inventory.decrement_inventory(cart.items, inv_map)
             CheckoutOrderBuilder.audit_creation(order, totals.total_amount)
             CheckoutService._maybe_save_default_payment_token(cart.user_id, payload.payment_token_id, payload.save_as_default)
+            
             response_payload = CheckoutConfirmResponse(
                 order_id=order.id,
                 order_number=order.order_number,
                 total_paid=Decimal(totals.total_amount),
                 payment_reference=payment_ref,
             )
+            
+            # Mark idempotency as succeeded
+            CheckoutIdempotencyManager.mark_succeeded(idempotency_record, response_payload, order.id)
+            
             db.session.commit()
-            CheckoutService._store_idempotency(
-                user_id=cart.user_id,
-                key=payload.idempotency_key,
-                request_hash=request_hash,
-                response=response_payload,
-            )
         except Exception:
             db.session.rollback()
             if payment_ref:
@@ -104,14 +109,6 @@ class CheckoutService:
     @staticmethod
     def _hash_request(payload: CheckoutConfirmRequest) -> str:
         return CheckoutIdempotencyManager.hash_request(payload)
-
-    @staticmethod
-    def _check_idempotency(user_id: UUID, key: str, request_hash: str):
-        return CheckoutIdempotencyManager.get_existing(user_id, key, request_hash)
-
-    @staticmethod
-    def _store_idempotency(user_id: UUID, key: str, request_hash: str, response: CheckoutConfirmResponse) -> None:
-        CheckoutIdempotencyManager.store_response(user_id, key, request_hash, response)
 
     @staticmethod
     def _maybe_save_default_payment_token(user_id: UUID, payment_token_id: UUID, save_as_default: bool) -> None:
