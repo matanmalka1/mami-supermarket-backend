@@ -2,8 +2,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = '0004'
-down_revision = '0003'
+revision = '0004_update_idempotency'
+down_revision = '0003_add_phone_and_is_default'
 branch_labels = None
 depends_on = None
 
