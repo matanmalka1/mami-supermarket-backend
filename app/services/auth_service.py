@@ -14,6 +14,10 @@ TokenMetadata = dict[str, Any]
 
 class AuthService:
     @staticmethod
+    def get_user_by_email(email: str) -> User | None:
+        session = db.session
+        return session.query(User).filter_by(email=email).first()
+    @staticmethod
     def register(data: RegisterRequest) -> User:
         session = db.session
         exists = session.query(User).filter_by(email=data.email).first()

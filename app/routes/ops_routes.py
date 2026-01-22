@@ -11,6 +11,7 @@ from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import OrderStatus, Role
 from app.services.ops_service import OpsOrderService
+from app.services.ops.custom_ops_service import create_batch_for_ops, get_ops_performance
 from app.utils.request_utils import current_user_id, parse_pagination, parse_iso_date
 from app.utils.responses import pagination_envelope, success_envelope
 
@@ -56,6 +57,35 @@ def update_picked_status(order_id: UUID, item_id: UUID):
         raise DomainError("BAD_REQUEST", "picked_status is required", status_code=400)
     order = OpsOrderService.update_item_status(order_id, item_id, new_status, current_user_id())
     return jsonify(success_envelope(order))
+
+# Endpoint: POST /ops/batches
+@blueprint.post("/batches")
+@jwt_required()
+@require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
+def create_batch():
+    user_id = current_user_id()
+    payload = request.get_json() or {}
+    batch_data = create_batch_for_ops(user_id, payload)
+    return jsonify(success_envelope(batch_data)), 201
+
+# Endpoint: GET /ops/performance
+@blueprint.get("/performance")
+@jwt_required()
+@require_role(Role.MANAGER, Role.ADMIN)
+def get_performance():
+    user_id = current_user_id()
+    performance_data = get_ops_performance(user_id)
+    return jsonify(success_envelope(performance_data)), 200
+
+# Endpoint: GET /ops/map
+@blueprint.get("/map")
+@jwt_required()
+@require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
+def get_map():
+    user_id = current_user_id()
+    from app.services.ops.custom_ops_service import get_ops_map
+    map_data = get_ops_map(user_id)
+    return jsonify(success_envelope(map_data)), 200
 
 
 @blueprint.patch("/orders/<uuid:order_id>/status")

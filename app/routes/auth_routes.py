@@ -80,6 +80,37 @@ def login():
     response = AuthService.build_auth_response(user)
     return _build_response(response)
 
+# Endpoint: POST /forgot-password
+@blueprint.post("/forgot-password")
+def forgot_password():
+    import uuid
+    payload = request.get_json() or {}
+    email = payload.get("email")
+    if not email:
+        raise DomainError("BAD_REQUEST", "Email is required", status_code=400)
+
+    user = AuthService.get_user_by_email(email)
+    if not user:
+        AuditService.log_event(
+            entity_type="user_password_reset",
+            action="FORGOT_PASSWORD_REQUEST",
+            context={"email": email, "result": "USER_NOT_FOUND"},
+        )
+        return jsonify({"data": "Password reset link sent"}), 200
+
+    # יצירת טוקן איפוס אמיתי (uuid4)
+    reset_token = str(uuid.uuid4())
+    # TODO: שליחת מייל בפועל עם הטוקן
+
+    AuditService.log_event(
+        entity_type="user_password_reset",
+        action="FORGOT_PASSWORD_REQUEST",
+        actor_user_id=user.id,
+        entity_id=user.id,
+        context={"email": email, "result": "SUCCESS", "reset_token": reset_token},
+    )
+    return jsonify({"data": "Password reset link sent"}), 200
+
 
 @blueprint.post("/change-password")
 @jwt_required()

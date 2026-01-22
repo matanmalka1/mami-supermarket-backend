@@ -36,6 +36,16 @@ def update_profile():
     profile = ProfileService.update_profile(user_id, payload)
     return jsonify(success_envelope(profile.model_dump()))
 
+# Endpoint: GET /me ("" אמיתי)
+@blueprint.get("")
+@jwt_required()
+def get_profile():
+    """Return full user profile (including loyalty if needed)."""
+    user_id = current_user_id()
+    profile = ProfileService.get_user_profile(user_id)
+    # אם צריך להוסיף loyalty, יש להרחיב כאן
+    return jsonify(success_envelope(profile.model_dump())), 200
+
 
 @blueprint.get("/addresses")
 @jwt_required()
