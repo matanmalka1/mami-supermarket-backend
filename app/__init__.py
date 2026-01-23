@@ -23,6 +23,7 @@ from .routes import (
     orders_routes,
     audit_routes,
 )
+from app.middleware.cors import register_cors
 
 def create_app(config: AppConfig | None = None) -> Flask:
     """Create and configure the Flask application."""
@@ -37,6 +38,7 @@ def create_app(config: AppConfig | None = None) -> Flask:
     setup_structured_logging(app)
     _register_extensions(app)
     register_middlewares(app)
+    register_cors(app)
     _register_blueprints(app)
     _register_delivery_branch_check(app)
 
