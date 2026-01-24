@@ -42,6 +42,7 @@ def create_app(config: AppConfig | None = None) -> Flask:
     register_middlewares(app)
     register_cors(app)
     _register_blueprints(app)
+    _register_options_short_circuit(app)
     _register_delivery_branch_check(app)
 
     return app
@@ -94,3 +95,11 @@ def _register_delivery_branch_check(app: Flask) -> None:
             # let the global error handlers format the response
             raise
         g._delivery_branch_validated = True
+
+def _register_options_short_circuit(app: Flask) -> None:
+    from flask import request
+
+    @app.before_request
+    def _allow_options_preflight():
+        if request.method == "OPTIONS":
+            return "", 204
