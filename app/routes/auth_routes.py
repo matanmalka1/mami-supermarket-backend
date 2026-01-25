@@ -2,6 +2,7 @@
 
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from urllib.parse import quote
 
 from app.middleware.error_handler import DomainError
 from app.extensions import limiter
@@ -17,6 +18,7 @@ from app.schemas.auth import (
 )
 from app.services.auth_service import AuthService
 from app.services.password_reset_service import PasswordResetService
+from app.services.email_service import send_password_reset_email
 
 blueprint = Blueprint("auth", __name__)
 
@@ -100,8 +102,12 @@ def forgot_password():
         return jsonify(success_envelope("Password reset link sent")), 200
 
     reset_token = PasswordResetService.create_token(user.id)
+    base_url = current_app.config.get("FRONTEND_BASE_URL", "http://localhost:5173").rstrip("/")
+    reset_url = f"{base_url}/reset-password?token={quote(reset_token)}"
+    send_password_reset_email(email, reset_url)
+
     response_body = {"message": "Password reset link sent"}
-    if current_app.config.get("ENV") == "development" or current_app.config.get("TESTING"):
+    if current_app.config.get("APP_ENV") == "development" or current_app.config.get("TESTING"):
         response_body["reset_token"] = reset_token
 
     AuditService.log_event(

@@ -23,6 +23,13 @@ class AppConfig:
     CORS_ALLOWED_ORIGINS: str = field(
         default_factory=lambda: _env_or_default("CORS_ALLOWED_ORIGINS", "*")
     )
+    FRONTEND_BASE_URL: str = field(
+        default_factory=lambda: _env_or_default("FRONTEND_BASE_URL", "http://localhost:5173")
+    )
+    BREVO_API_KEY: str = field(default_factory=lambda: _env_or_default("BREVO_API_KEY", ""))
+    BREVO_TEMPLATE_ID: str = field(default_factory=lambda: _env_or_default("BREVO_TEMPLATE_ID", ""))
+    SENDER_EMAIL: str = field(default_factory=lambda: _env_or_default("SENDER_EMAIL", ""))
+    APP_ENV: str = field(default_factory=lambda: _env_or_default("APP_ENV", "production"))
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     SQLALCHEMY_DATABASE_URI: str = field(init=False)
 
