@@ -11,7 +11,12 @@ from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import OrderStatus, Role
 from app.services.ops_service import OpsOrderService
-from app.services.ops.custom_ops_service import create_batch_for_ops, get_ops_performance
+from app.services.ops.custom_ops_service import (
+    create_batch_for_ops,
+    get_ops_performance,
+    get_ops_map,
+    get_ops_alerts,
+)
 
 from app.services.stock_requests_service import StockRequestService
 from app.schemas.stock_requests import StockRequestCreateRequest
@@ -99,13 +104,20 @@ def get_performance():
     performance_data = get_ops_performance(user_id)
     return jsonify(success_envelope(performance_data)), 200
 
+# Endpoint: GET /ops/alerts
+@blueprint.get("/alerts")
+@jwt_required()
+@require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
+def get_alerts():
+    alerts = get_ops_alerts(current_user_id())
+    return jsonify(success_envelope(alerts)), 200
+
 # Endpoint: GET /ops/map
 @blueprint.get("/map")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def get_map():
     user_id = current_user_id()
-    from app.services.ops.custom_ops_service import get_ops_map
     map_data = get_ops_map(user_id)
     return jsonify(success_envelope(map_data)), 200
 
