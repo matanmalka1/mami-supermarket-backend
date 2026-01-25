@@ -16,7 +16,7 @@ RevenueTable = sa.table(
     "orders",
     sa.column("created_at", sa.DateTime),
     sa.column("total_amount", sa.Numeric(12, 2)),
-    sa.column("status", sa.String),
+    sa.column("status", sa.Enum(OrderStatus, name="order_status")),
 )
 
 @blueprint.get("/revenue")
@@ -68,12 +68,12 @@ def revenue():
             ).label("value"),
         )
         .select_from(RevenueTable)
-    .where(
-        sa.and_(
-            RevenueTable.c.status == "COMPLETED",
-            RevenueTable.c.created_at >= sa.bindparam("start"),
-        ),
-    )
+        .where(
+            sa.and_(
+            RevenueTable.c.status == OrderStatus.DELIVERED,
+                RevenueTable.c.created_at >= sa.bindparam("start"),
+            ),
+        )
         .group_by(label_expr)
         .order_by(label_expr)
     )
