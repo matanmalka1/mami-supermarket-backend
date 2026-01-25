@@ -59,6 +59,7 @@ def revenue():
                 'YYYY-MM-DD',
             )
 
+    status_filter = sa.cast(RevenueTable.c.status, sa.String) == OrderStatus.DELIVERED.value
     q = (
         sa.select(
             label_expr.label("label"),
@@ -70,7 +71,7 @@ def revenue():
         .select_from(RevenueTable)
         .where(
             sa.and_(
-            RevenueTable.c.status == OrderStatus.DELIVERED,
+                status_filter,
                 RevenueTable.c.created_at >= sa.bindparam("start"),
             ),
         )
