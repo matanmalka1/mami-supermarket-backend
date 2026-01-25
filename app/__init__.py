@@ -51,7 +51,8 @@ def create_app(config: AppConfig | None = None) -> Flask:
 def _register_extensions(app: Flask) -> None:
     from datetime import timedelta
 
-    app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=15))
+    expires_minutes = app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 240)
+    app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=expires_minutes))
     app.config.setdefault("JWT_REFRESH_TOKEN_EXPIRES", timedelta(days=30))
 
     db.init_app(app)

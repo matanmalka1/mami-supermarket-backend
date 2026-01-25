@@ -23,6 +23,11 @@ class AppConfig:
     JWT_SECRET_KEY: str = field(
         default_factory=lambda: _env_or_default("JWT_SECRET_KEY", "change-me")
     )
+    JWT_ACCESS_TOKEN_EXPIRES_MINUTES: int = field(
+        default_factory=lambda: int(
+            _env_or_default("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", "240")
+        )
+    )
     DELIVERY_SOURCE_BRANCH_ID: str = field(
         default_factory=lambda: _env_or_default("DELIVERY_SOURCE_BRANCH_ID", "")
     )

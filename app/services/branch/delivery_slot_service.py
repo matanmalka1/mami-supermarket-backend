@@ -10,7 +10,10 @@ from app.services.audit_service import AuditService
 
 class DeliverySlotService:
     @staticmethod
-    def list_delivery_slots(day_of_week: int | None, branch_id: UUID | None) -> list[DeliverySlotResponse]:
+    def list_delivery_slots(
+        day_of_week: int | None = None,
+        branch_id: UUID | None = None,
+    ) -> list[DeliverySlotResponse]:
         stmt = select(DeliverySlot).where(DeliverySlot.is_active.is_(True))
         if day_of_week is not None:
             stmt = stmt.where(DeliverySlot.day_of_week == day_of_week)

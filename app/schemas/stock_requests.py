@@ -28,7 +28,10 @@ class BulkReviewRequest(DefaultModel):
 class StockRequestResponse(DefaultModel):
     id: UUID
     branch_id: UUID
+    branch_name: str | None = None
     product_id: UUID
+    product_name: str | None = None
+    product_sku: str | None = None
     quantity: int
     request_type: StockRequestType
     status: StockRequestStatus

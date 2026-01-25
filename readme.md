@@ -1,15 +1,10 @@
-# Mami Supermarket Backend
 
-**Flask + PostgreSQL · Real Inventory · Multi-Branch · Tokenized Payments · Audit Trail**
+# mami-supermarket-backend
 
-```text
-| \/ | (_) | |
-| \ / | \_\_ _ _ \_\_ _ | |
-| |\/| |/ _` | '_ ` _ \ |
-| | | | (_| | | | | | |
-|_| |_|\__,_|_| |_| |\_|
-          Supermarket · Online Ordering System
-```
+Backend service for the Mami Supermarket project. Provides RESTful APIs for inventory, orders, users, and more.
+
+**FastAPI + PostgreSQL · Real Inventory · Multi-Branch · Tokenized Payments · Audit Trail**
+
 
 ## Table of Contents
 
@@ -145,6 +140,10 @@ mami-supermarket-backend/
 ## Getting Started
 
 ```bash
+
+## Getting Started
+
+```bash
 # 1. Clone & enter
 git clone <repo-url>
 cd mami-supermarket-backend
@@ -170,7 +169,10 @@ python scripts/seed.py
 # 8. Run development server
 python run.py
 # or for production (Gunicorn)
-./scripts/gunicorn.sh
+sh scripts/gunicorn.sh
+# or with Docker Compose
+docker-compose up --build
+```
 ```
 
 ## Environment Variables (.env)
@@ -215,6 +217,9 @@ User → Address → PaymentToken
                            ↳ OrderDeliveryDetails / OrderPickupDetails
                            ↳ Audit (old/new JSON)
 ```
+
+---
+For more, see the `docs/` folder and `TODO.md`. For questions, contact the maintainers.
 
 Also:
 Branch, DeliverySlot, StockRequest

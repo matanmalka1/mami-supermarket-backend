@@ -76,13 +76,14 @@ def map_view():
         .order_by(Branch.name.asc())
         .all()
     )
-    branch_rows = [
-        {
-            "id": str(branch.id),
-            "name": branch.name,
-            "lat": branch.latitude,
-            "lng": branch.longitude,
-        }
-        for branch in branches
-    ]
+    branch_rows = []
+    for branch in branches:
+        branch_rows.append(
+            {
+                "id": str(branch.id),
+                "name": branch.name,
+                "lat": getattr(branch, "latitude", None),
+                "lng": getattr(branch, "longitude", None),
+            }
+        )
     return jsonify(success_envelope({"branches": branch_rows, "bins": []}))
