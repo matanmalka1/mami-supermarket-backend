@@ -21,6 +21,7 @@ def to_ops_response(order: Order) -> OpsOrderResponse:
 def to_detail(order: Order) -> OrderResponse:
     items = [
         OrderItemResponse(
+            id=item.id,
             product_id=item.product_id,
             name=item.name,
             sku=item.sku,

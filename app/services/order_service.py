@@ -80,6 +80,7 @@ class OrderService:
     def _to_response(order: Order) -> OrderResponse:
         items = [
             OrderItemResponse(
+                id=item.id,
                 product_id=item.product_id,
                 name=item.name,
                 sku=item.sku,

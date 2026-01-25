@@ -7,6 +7,7 @@ from .common import DefaultModel, Pagination
 from ..models.enums import OrderStatus, FulfillmentType, PickedStatus
 
 class OrderItemResponse(DefaultModel):
+    id: UUID
     product_id: UUID
     name: str
     sku: str
