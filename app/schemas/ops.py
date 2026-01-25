@@ -19,6 +19,8 @@ class OpsOrderResponse(DefaultModel):
     urgency_rank: int
     created_at: datetime
     items_pending: int
+    customer_name: str | None = None
+    items_summary: str | None = None
 
 class UpdatePickStatusRequest(DefaultModel):
     picked_status: PickedStatus

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from app.models import Order
+from app.models import Order, OrderItem
 from app.models.enums import OrderStatus, PickedStatus
 from app.schemas.ops import OpsOrderResponse
 from app.schemas.orders import OrderItemResponse, OrderResponse
@@ -15,6 +15,8 @@ def to_ops_response(order: Order) -> OpsOrderResponse:
         urgency_rank=urgency_rank,
         created_at=order.created_at,
         items_pending=pending_count,
+        customer_name=getattr(order.user, "full_name", None),
+        items_summary=_build_items_summary(order.items),
     )
 
 
@@ -47,3 +49,16 @@ def urgency_rank_for_order(order: Order) -> int:
         start = order.delivery.delivery_slot.start_time
         return (start.hour * 60 + start.minute) if start else 24 * 60
     return 24 * 60
+
+
+def _build_items_summary(items: list["OrderItem"]) -> str | None:
+    if not items:
+        return None
+    parts = []
+    for item in items[:3]:
+        qty = item.quantity
+        parts.append(f"{item.name}{f' x{qty}' if qty and qty > 1 else ''}")
+    summary = ", ".join(parts)
+    if len(items) > 3:
+        summary += f" (+{len(items) - 3} more)"
+    return summary

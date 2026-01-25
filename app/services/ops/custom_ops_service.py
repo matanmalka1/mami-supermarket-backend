@@ -1,21 +1,16 @@
 from datetime import datetime
 from uuid import uuid4
-from app.models.enums import Role
-from app.utils.responses import success_envelope
+
+from app.services.ops.performance_service import OpsPerformanceService
 
 def create_batch_for_ops(user_id, batch_payload):
     # TODO: implement real batch creation logic
     return {"id": str(uuid4()), "created_by": str(user_id), "payload": batch_payload}
 
 def get_ops_performance(user_id):
-    # TODO: implement real performance logic
-    score = 95
-    return {
-        "batchEfficiency": score,
-        "livePickers": 12,
-        "score": score,
-        "user_id": str(user_id),
-    }
+    metrics = OpsPerformanceService.compute_metrics()
+    metrics["user_id"] = str(user_id)
+    return metrics
 
 def get_ops_map(user_id):
     # TODO: implement real map logic

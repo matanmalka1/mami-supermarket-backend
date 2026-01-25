@@ -23,6 +23,7 @@ class OpsOrderQueryService:
         base = sa.select(Order)
         stmt = base.options(
             selectinload(Order.items),
+            selectinload(Order.user),
             selectinload(Order.delivery).selectinload(OrderDeliveryDetails.delivery_slot),
         )
         if status:
