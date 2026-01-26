@@ -1,5 +1,5 @@
 import sys
-import uuid
+import secrets
 from pathlib import Path
 from datetime import time
 
@@ -26,7 +26,7 @@ def client(test_app):
 @pytest.fixture
 def create_user_with_role(session):
     def _create(role):
-        unique = uuid.uuid4().hex[:8]
+        unique = secrets.token_hex(4)
         user = User(
             email=f"{role.value.lower()}_{unique}@example.com",
             full_name=f"{role.value.title()} User {unique}",
@@ -65,7 +65,7 @@ def ensure_product(session):
 
 @pytest.fixture(scope="session")
 def test_app():
-    warehouse_id = uuid.uuid4()
+    warehouse_id = 1
     cfg = AppConfig(
         DATABASE_URL="sqlite:///:memory:",
         JWT_SECRET_KEY="test",
@@ -96,7 +96,7 @@ def session(test_app):
         # Fresh DB per test
         Base.metadata.drop_all(bind=db.engine)
         Base.metadata.create_all(bind=db.engine)
-        warehouse_id = uuid.UUID(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
+        warehouse_id = int(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
         branch = Branch(id=warehouse_id, name="Warehouse", address="Nowhere 1")
         db.session.add(branch)
         slot = DeliverySlot(
@@ -131,7 +131,7 @@ def users(session):
 
 @pytest.fixture
 def product_with_inventory(session, test_app):
-    warehouse_id = uuid.UUID(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
+    warehouse_id = int(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
     session.query(Branch).filter(Branch.name == "Pickup").delete()
     other_branch = Branch(name="Pickup", address="Street 2")
     session.add(other_branch)

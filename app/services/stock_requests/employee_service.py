@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID, uuid4
 import sqlalchemy as sa
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -12,7 +11,7 @@ from .mappers import to_response
 
 class StockRequestEmployeeService:
     @staticmethod
-    def create_request(user_id: UUID, payload: StockRequestCreateRequest) -> StockRequestResponse:
+    def create_request(user_id: int, payload: StockRequestCreateRequest) -> StockRequestResponse:
         inventory = db.session.execute(
             sa.select(Inventory)
             .where(Inventory.branch_id == payload.branch_id)
@@ -21,7 +20,6 @@ class StockRequestEmployeeService:
         if not inventory:
             raise DomainError("NOT_FOUND", "Inventory row not found for branch/product", status_code=404)
         request = StockRequest(
-            id=uuid4(),
             branch_id=payload.branch_id,
             product_id=payload.product_id,
             quantity=payload.quantity,
@@ -46,7 +44,7 @@ class StockRequestEmployeeService:
         return to_response(request)
 
     @staticmethod
-    def list_my(user_id: UUID, limit: int, offset: int) -> tuple[list[StockRequestResponse], int]:
+    def list_my(user_id: int, limit: int, offset: int) -> tuple[list[StockRequestResponse], int]:
         stmt = (
             sa.select(StockRequest)
             .where(StockRequest.actor_user_id == user_id)

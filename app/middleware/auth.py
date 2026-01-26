@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from functools import wraps
 from typing import Callable
-from uuid import UUID
 
 from flask import g
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
@@ -20,7 +19,11 @@ def _current_user() -> User:
     identity = get_jwt_identity()
     if not identity:
         raise DomainError("AUTH_REQUIRED", "Authentication required", status_code=401)
-    return db.session.get(User, UUID(identity))
+    try:
+        user_id = int(identity)
+    except (TypeError, ValueError):
+        raise DomainError("AUTH_REQUIRED", "Invalid authentication identity", status_code=401)
+    return db.session.get(User, user_id)
 
 def require_auth(view: Callable) -> Callable:
     @wraps(view)

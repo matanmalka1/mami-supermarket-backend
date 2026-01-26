@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 from datetime import datetime
-from uuid import UUID, uuid4
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm import Session
 
@@ -26,17 +25,21 @@ class AuditService:
         *,
         entity_type: str,
         action: str,
-        actor_user_id: UUID | None = None,
-        entity_id: UUID | None = None,
+        actor_user_id: int | None = None,
+        entity_id: int | None = None,
         old_value: dict[str, object] | None = None,
         new_value: dict[str, object] | None = None,
         context: dict[str, object] | None = None,
     ) -> Audit:
         session: Session = db.session
-        # Audit table enforces a non-null entity_id; fall back to actor or a new UUID
-        resolved_entity_id = entity_id or actor_user_id or uuid4()
+        # Audit table enforces a non-null entity_id; fall back to actor or zero
+        if entity_id is not None:
+            resolved_entity_id = entity_id
+        elif actor_user_id is not None:
+            resolved_entity_id = actor_user_id
+        else:
+            resolved_entity_id = 0
         entry = Audit(
-            id=uuid4(),
             entity_type=entity_type,
             action=action,
             actor_user_id=actor_user_id,
@@ -73,12 +76,12 @@ class AuditQueryService:
         return {
             "id": row.id,
             "entity_type": row.entity_type,
-            "entity_id": str(row.entity_id),
+            "entity_id": row.entity_id,
             "action": row.action,
             "old_value": row.old_value,
             "new_value": row.new_value,
             "context": row.context,
-            "actor_user_id": str(row.actor_user_id) if row.actor_user_id else None,
+            "actor_user_id": row.actor_user_id,
             "actor_email": row.actor.email if row.actor else None,
             "created_at": row.created_at,
         }

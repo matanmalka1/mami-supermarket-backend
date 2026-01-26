@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 from sqlalchemy import select
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -12,7 +11,7 @@ class DeliverySlotService:
     @staticmethod
     def list_delivery_slots(
         day_of_week: int | None = None,
-        branch_id: UUID | None = None,
+        branch_id: int | None = None,
     ) -> list[DeliverySlotResponse]:
         stmt = select(DeliverySlot).where(DeliverySlot.is_active.is_(True))
         if day_of_week is not None:
@@ -33,7 +32,7 @@ class DeliverySlotService:
 
     @staticmethod
     def create_delivery_slot(
-        branch_id: UUID,
+        branch_id: int,
         day_of_week: int,
         start_time,
         end_time,
@@ -60,7 +59,7 @@ class DeliverySlotService:
 
     @staticmethod
     def update_delivery_slot(
-        slot_id: UUID,
+        slot_id: int,
         day_of_week: int,
         start_time,
         end_time,
@@ -98,7 +97,7 @@ class DeliverySlotService:
         )
 
     @staticmethod
-    def toggle_delivery_slot(slot_id: UUID, active: bool) -> DeliverySlotResponse:
+    def toggle_delivery_slot(slot_id: int, active: bool) -> DeliverySlotResponse:
         slot = db.session.get(DeliverySlot, slot_id)
         if not slot:
             raise DomainError("NOT_FOUND", "Delivery slot not found", status_code=404)

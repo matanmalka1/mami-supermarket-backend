@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 from flask import Blueprint, jsonify, request
 from app.middleware.auth import require_role
 from app.models.enums import Role
@@ -19,17 +18,17 @@ def create_category():
     return jsonify(success_envelope(category)), 201
 
 ## UPDATE (Category)
-@blueprint.patch("/categories/<uuid:category_id>")
+@blueprint.patch("/categories/<int:category_id>")
 @require_role(Role.MANAGER, Role.ADMIN)
-def update_category(category_id: UUID):
+def update_category(category_id: int):
     payload = CategoryAdminRequest.model_validate(request.get_json())
     category = CatalogAdminService.update_category(category_id, payload.name, payload.description)
     return jsonify(success_envelope(category))
 
 ## TOGGLE ACTIVE (Category)
-@blueprint.patch("/categories/<uuid:category_id>/toggle")
+@blueprint.patch("/categories/<int:category_id>/toggle")
 @require_role(Role.MANAGER, Role.ADMIN)
-def toggle_category(category_id: UUID):
+def toggle_category(category_id: int):
     active = toggle_flag(request.args)
     category = CatalogAdminService.toggle_category(category_id, active)
     return jsonify(success_envelope(category))
@@ -49,9 +48,9 @@ def create_product():
     return jsonify(success_envelope(product)), 201
 
 ## UPDATE (Product)
-@blueprint.patch("/products/<uuid:product_id>")
+@blueprint.patch("/products/<int:product_id>")
 @require_role(Role.MANAGER, Role.ADMIN)
-def update_product(product_id: UUID):
+def update_product(product_id: int):
     payload = ProductUpdateRequest.model_validate(request.get_json())
     product = CatalogAdminService.update_product(
         product_id,
@@ -64,9 +63,9 @@ def update_product(product_id: UUID):
     return jsonify(success_envelope(product))
 
 ## TOGGLE ACTIVE (Product)
-@blueprint.patch("/products/<uuid:product_id>/toggle")
+@blueprint.patch("/products/<int:product_id>/toggle")
 @require_role(Role.MANAGER, Role.ADMIN)
-def toggle_product(product_id: UUID):
+def toggle_product(product_id: int):
     active = toggle_flag(request.args)
     product = CatalogAdminService.toggle_product(product_id, active)
     return jsonify(success_envelope(product))

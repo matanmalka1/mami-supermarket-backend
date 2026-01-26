@@ -64,7 +64,7 @@ def add_to_wishlist():
 
 
 ## DELETE (Wishlist Item)
-@blueprint.delete("/wishlist/<uuid:product_id>")
+@blueprint.delete("/wishlist/<int:product_id>")
 @jwt_required()
 def remove_from_wishlist(product_id):
     removed = WishlistService.remove_item(current_user_id(), product_id)

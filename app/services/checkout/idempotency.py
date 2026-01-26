@@ -1,7 +1,6 @@
 from __future__ import annotations
 import hashlib
 import json
-from uuid import UUID, uuid4
 from sqlalchemy import select
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -18,7 +17,7 @@ class CheckoutIdempotencyManager:
         return hashlib.sha256(json.dumps(data, sort_keys=True, default=str).encode("utf-8")).hexdigest()
 
     @staticmethod
-    def get_or_create_in_progress(user_id: UUID, key: str, request_hash: str) -> tuple[IdempotencyKey, bool]:
+    def get_or_create_in_progress(user_id: int, key: str, request_hash: str) -> tuple[IdempotencyKey, bool]:
         existing = db.session.execute(
             select(IdempotencyKey).where(
                 IdempotencyKey.user_id == user_id,
@@ -29,7 +28,6 @@ class CheckoutIdempotencyManager:
         if not existing:
             # Create new IN_PROGRESS record
             record = IdempotencyKey(
-                id=uuid4(),
                 user_id=user_id,
                 key=key,
                 request_hash=request_hash,
@@ -58,7 +56,7 @@ class CheckoutIdempotencyManager:
         return existing, False
 
     @staticmethod
-    def mark_succeeded(record: IdempotencyKey, response: CheckoutConfirmResponse, order_id: UUID) -> None:
+    def mark_succeeded(record: IdempotencyKey, response: CheckoutConfirmResponse, order_id: int) -> None:
         """Mark idempotency record as succeeded with response."""
         record.status = IdempotencyStatus.SUCCEEDED
         record.response_payload = response.model_dump()

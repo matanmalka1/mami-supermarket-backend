@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from typing import Any
-from uuid import UUID
 
 from ....extensions import db
 from ....models import Address
@@ -23,7 +22,7 @@ class AddressService:
     _ADDRESS_FIELDS = ("address_line", "city", "postal_code", "country")
 
     @staticmethod
-    def list_addresses(user_id: UUID) -> list[AddressResponse]:
+    def list_addresses(user_id: int) -> list[AddressResponse]:
         addresses = (
             db.session.query(Address)
             .filter_by(user_id=user_id)
@@ -33,7 +32,7 @@ class AddressService:
         return [address_to_response(addr) for addr in addresses]
 
     @staticmethod
-    def create_address(user_id: UUID, data: AddressRequest) -> AddressResponse:
+    def create_address(user_id: int, data: AddressRequest) -> AddressResponse:
         if data.is_default:
             db.session.query(Address).filter_by(user_id=user_id, is_default=True).update(
                 {"is_default": False}
@@ -63,7 +62,7 @@ class AddressService:
         return address_to_response(address)
 
     @staticmethod
-    def update_address(user_id: UUID, address_id: UUID, data: AddressUpdateRequest) -> AddressResponse:
+    def update_address(user_id: int, address_id: int, data: AddressUpdateRequest) -> AddressResponse:
         address = fetch_address(user_id, address_id)
         old_values: dict[str, Any] = {}
         new_values: dict[str, Any] = {}
@@ -82,7 +81,7 @@ class AddressService:
         return address_to_response(address)
 
     @staticmethod
-    def delete_address(user_id: UUID, address_id: UUID) -> dict[str, str]:
+    def delete_address(user_id: int, address_id: int) -> dict[str, str]:
         address = fetch_address(user_id, address_id)
         old_value = {
             "address_line": address.address_line,
@@ -102,7 +101,7 @@ class AddressService:
         return {"message": "Address deleted successfully"}
 
     @staticmethod
-    def set_default_address(user_id: UUID, address_id: UUID) -> AddressResponse:
+    def set_default_address(user_id: int, address_id: int) -> AddressResponse:
         address = fetch_address(user_id, address_id)
         db.session.query(Address).filter_by(user_id=user_id, is_default=True).update(
             {"is_default": False}
@@ -120,7 +119,7 @@ class AddressService:
         return address_to_response(address)
 
     @staticmethod
-    def update_location(user_id: UUID, address_id: UUID, data: AddressLocationRequest) -> AddressResponse:
+    def update_location(user_id: int, address_id: int, data: AddressLocationRequest) -> AddressResponse:
         address = fetch_address(user_id, address_id)
         old_value = {"latitude": address.latitude, "longitude": address.longitude}
         address.latitude = data.lat

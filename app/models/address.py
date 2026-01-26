@@ -8,6 +8,7 @@ from .base import Base, TimestampMixin
 class Address(Base, TimestampMixin):
     __tablename__ = "addresses"
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     address_line = Column(String(256), nullable=False)

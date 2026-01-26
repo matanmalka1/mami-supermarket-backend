@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
 from app.extensions import db
@@ -23,7 +22,7 @@ class StockRequestReviewService:
         return [to_response(row) for row in rows], total or 0
 
     @staticmethod
-    def get_request(request_id: UUID) -> StockRequestResponse:
+    def get_request(request_id: int) -> StockRequestResponse:
         """Get detailed stock request information."""
         stock_request = db.session.execute(
             sa.select(StockRequest)
@@ -38,11 +37,11 @@ class StockRequestReviewService:
 
     @staticmethod
     def review(
-        request_id: UUID,
+        request_id: int,
         status: StockRequestStatus,
         approved_quantity: int | None,
         rejection_reason: str | None,
-        actor_id: UUID,
+        actor_id: int,
     ) -> StockRequestResponse:
         session = db.session
         stock_request = session.execute(
@@ -84,7 +83,7 @@ class StockRequestReviewService:
         return to_response(stock_request)
 
     @staticmethod
-    def bulk_review(payload: BulkReviewRequest, actor_id: UUID) -> list[dict]:
+    def bulk_review(payload: BulkReviewRequest, actor_id: int) -> list[dict]:
         results: list[dict] = []
         for item in payload.items:
             try:

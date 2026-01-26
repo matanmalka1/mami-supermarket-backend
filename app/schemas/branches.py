@@ -1,27 +1,27 @@
 from __future__ import annotations
 from datetime import time
-from uuid import UUID
+
 from pydantic import Field
 from .common import DefaultModel, Pagination
 
 class BranchResponse(DefaultModel):
-    id: UUID
+    id: int
     name: str
     address: str
     is_active: bool
 
 class DeliverySlotResponse(DefaultModel):
-    id: UUID
-    branch_id: UUID
+    id: int
+    branch_id: int
     day_of_week: int
     start_time: time
     end_time: time
 
 class InventoryResponse(DefaultModel):
-    id: UUID
-    branch_id: UUID
+    id: int
+    branch_id: int
     branch_name: str
-    product_id: UUID
+    product_id: int
     product_name: str
     product_sku: str
     available_quantity: int
@@ -39,8 +39,8 @@ class InventoryUpdateRequest(DefaultModel):
     reserved_quantity: int = Field(ge=0)
 
 class InventoryCreateRequest(DefaultModel):
-    product_id: UUID
-    branch_id: UUID
+    product_id: int
+    branch_id: int
     available_quantity: int = Field(ge=0)
     reserved_quantity: int = Field(ge=0)
 
@@ -49,7 +49,7 @@ class BranchAdminRequest(DefaultModel):
     address: str
 
 class DeliverySlotAdminRequest(DefaultModel):
-    branch_id: UUID
+    branch_id: int
     day_of_week: int = Field(ge=0, le=6)
     start_time: time
     end_time: time

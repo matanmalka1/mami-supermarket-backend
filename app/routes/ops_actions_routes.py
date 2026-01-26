@@ -1,7 +1,6 @@
 """Admin-only ops actions that currently return placeholder data."""
 
 from __future__ import annotations
-from uuid import UUID
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -20,10 +19,10 @@ blueprint = Blueprint("ops_actions", __name__)
 
 
 ## UPDATE (Sync Order)
-@blueprint.post("/orders/<uuid:order_id>/sync")
+@blueprint.post("/orders/<int:order_id>/sync")
 @jwt_required()
 @require_role(Role.ADMIN)
-def sync_order(order_id: UUID):
+def sync_order(order_id: int):
     """Return a successful sync flag."""
     order = db.session.get(Order, order_id)
     if not order:
@@ -39,10 +38,10 @@ def sync_order(order_id: UUID):
 
 
 ## CREATE (Report Damage)
-@blueprint.post("/orders/<uuid:order_id>/items/<uuid:item_id>/report-damage")
+@blueprint.post("/orders/<int:order_id>/items/<int:item_id>/report-damage")
 @jwt_required()
 @require_role(Role.ADMIN)
-def report_damage(order_id: UUID, item_id: UUID):
+def report_damage(order_id: int, item_id: int):
     payload = DamageReportRequest.model_validate(request.get_json() or {})
     order = db.session.get(Order, order_id)
     if not order:

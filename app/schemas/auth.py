@@ -1,6 +1,5 @@
 from __future__ import annotations
 from datetime import datetime
-from uuid import UUID
 from pydantic import Field
 from .common import DefaultModel
 from ..models.enums import Role
@@ -11,7 +10,6 @@ class ResetPasswordRequest(DefaultModel):
     new_password: str = Field(min_length=8)
 
 class RegisterRequest(DefaultModel):
-    # Basic email shape check; allow anything non-space around @ and a dot.
     email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     password: str = Field(min_length=8)
     full_name: str
@@ -26,7 +24,7 @@ class ChangePasswordRequest(DefaultModel):
     new_password: str = Field(min_length=8)
 
 class UserResponse(DefaultModel):
-    id: UUID
+    id: int
     email: str
     full_name: str
     role: Role

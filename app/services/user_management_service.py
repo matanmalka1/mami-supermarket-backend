@@ -1,7 +1,6 @@
 """User management service for admin operations."""
 
 from __future__ import annotations
-from uuid import UUID
 from sqlalchemy import select, func, or_
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -64,7 +63,7 @@ class UserManagementService:
         ], total
 
     @staticmethod
-    def get_user(user_id: UUID) -> UserDetailResponse:
+    def get_user(user_id: int) -> UserDetailResponse:
         user = db.session.execute(
             select(User).where(User.id == user_id)
         ).scalar_one_or_none()
@@ -85,7 +84,7 @@ class UserManagementService:
         )
 
     @staticmethod
-    def update_user(user_id: UUID, payload: UpdateUserRequest) -> UserDetailResponse:
+    def update_user(user_id: int, payload: UpdateUserRequest) -> UserDetailResponse:
         current_user_id = get_jwt_identity()
         
         user = db.session.execute(
@@ -135,7 +134,7 @@ class UserManagementService:
                 entity_type="User",
                 entity_id=user.id,
                 action="USER_UPDATED",
-                actor_user_id=UUID(current_user_id),
+                actor_user_id=int(current_user_id),
                 old_value=old_values,
                 new_value=new_values,
             )
@@ -155,7 +154,7 @@ class UserManagementService:
         )
 
     @staticmethod
-    def toggle_user(user_id: UUID, active: bool) -> UserDetailResponse:
+    def toggle_user(user_id: int, active: bool) -> UserDetailResponse:
         current_user_id = get_jwt_identity()
         
         user = db.session.execute(
@@ -182,7 +181,7 @@ class UserManagementService:
                 entity_type="User",
                 entity_id=user.id,
                 action="USER_TOGGLED",
-                actor_user_id=UUID(current_user_id),
+                actor_user_id=int(current_user_id),
                 old_value=old_value,
                 new_value=new_value,
             )

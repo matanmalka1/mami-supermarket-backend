@@ -75,11 +75,10 @@ class TestGetUser:
 
     def test_get_user_not_found(self, test_app, auth_header, create_user_with_role):
         """Should return 404 for non-existent user."""
-        import uuid
         admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
             response = client.get(
-                f"/api/v1/admin/users/{uuid.uuid4()}",
+                f"/api/v1/admin/users/9999",
                 headers=auth_header(admin),
             )
             assert response.status_code == 404

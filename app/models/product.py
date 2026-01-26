@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, ForeignKey, Index, Numeric, String, Text,Integer
+from sqlalchemy import Column, ForeignKey, Index, Numeric, String, Text, Integer
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
 from .base import Base, SoftDeleteMixin, TimestampMixin
@@ -11,7 +11,8 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
         Index("ix_products_name", "name"),
         Index("ix_products_category_id", "category_id"),
     )
-
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(128), nullable=False)
     sku = Column(String(64), nullable=False, unique=True, index=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)

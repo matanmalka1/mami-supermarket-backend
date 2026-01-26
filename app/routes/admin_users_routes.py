@@ -3,7 +3,6 @@
 from __future__ import annotations
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from uuid import UUID
 from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import Role
@@ -44,55 +43,40 @@ def list_users():
 
 
 ## READ (Get User)
-@blueprint.get("/<user_id>")
+@blueprint.get("/<int:user_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def get_user(user_id: str):
+def get_user(user_id: int):
     """Get detailed user information."""
-    try:
-        user_uuid = UUID(user_id)
-    except ValueError:
-        raise DomainError("INVALID_USER_ID", "Invalid user ID format", status_code=400)
-    
-    user = UserManagementService.get_user(user_uuid)
+    user = UserManagementService.get_user(user_id)
     return jsonify(success_envelope(user.model_dump()))
 
 
 ## UPDATE (User)
-@blueprint.patch("/<user_id>")
+@blueprint.patch("/<int:user_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def update_user(user_id: str):
+def update_user(user_id: int):
     """Update user administrative fields."""
-    try:
-        user_uuid = UUID(user_id)
-    except ValueError:
-        raise DomainError("INVALID_USER_ID", "Invalid user ID format", status_code=400)
-    
     data = request.get_json()
     if not data:
         raise DomainError("BAD_REQUEST", "Missing JSON body", status_code=400)
     
     payload = UpdateUserRequest.model_validate(data)
-    user = UserManagementService.update_user(user_uuid, payload)
+    user = UserManagementService.update_user(user_id, payload)
     
     return jsonify(success_envelope(user.model_dump()))
 
 
 ## TOGGLE ACTIVE (User)
-@blueprint.patch("/<user_id>/toggle")
+@blueprint.patch("/<int:user_id>/toggle")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def toggle_user(user_id: str):
+def toggle_user(user_id: int):
     """Toggle user active status."""
-    try:
-        user_uuid = UUID(user_id)
-    except ValueError:
-        raise DomainError("INVALID_USER_ID", "Invalid user ID format", status_code=400)
-    
     active = parse_bool(request.args.get("active"))
     if active is None:
         raise DomainError("MISSING_ACTIVE_PARAM", "Missing 'active' query parameter", status_code=400)
     
-    user = UserManagementService.toggle_user(user_uuid, active)
+    user = UserManagementService.toggle_user(user_id, active)
     return jsonify(success_envelope(user.model_dump()))

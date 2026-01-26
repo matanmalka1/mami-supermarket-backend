@@ -1,7 +1,6 @@
 """Stock request endpoints for employees and managers/admins."""
 
 from __future__ import annotations
-from uuid import UUID
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from app.middleware.auth import require_role
@@ -51,19 +50,19 @@ def list_admin_requests():
     return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
 
 ## READ (Admin Stock Request Detail)
-@blueprint.get("/admin/<uuid:request_id>")
+@blueprint.get("/admin/<int:request_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def get_admin_request(request_id: UUID):
+def get_admin_request(request_id: int):
     """Get detailed stock request information."""
     result = StockRequestService.get_request(request_id)
     return jsonify(success_envelope(result))
 
 ## UPDATE (Review Stock Request)
-@blueprint.patch("/admin/<uuid:request_id>/resolve")
+@blueprint.patch("/admin/<int:request_id>/resolve")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def review_request(request_id: UUID):
+def review_request(request_id: int):
     payload = StockRequestReviewRequest.model_validate(parse_json_or_400())
     result = StockRequestService.review(
         request_id,

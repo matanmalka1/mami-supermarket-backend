@@ -40,11 +40,6 @@ def _ensure_address(
 
 
 def seed_addresses(session: Session, user_ids: list) -> list[Address]:
-    """
-    מזין כתובות לכל המשתמשים.
-    user_ids: רשימת UUIDs של משתמשים קיימים (אחרי seed של users).
-    """
-    # כתובות "ריאליסטיות" בישראל – תוכל להחליף/להרחיב
     address_templates = [
         ("דיזנגוף 123, דירה 4", "תל אביב-יפו", "Israel", "6433221"),
         ("אבן גבירול 77, קומה 2", "תל אביב-יפו", "Israel", "6433402"),

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
@@ -20,7 +19,7 @@ class CatalogAdminService:
         return to_category_response(category)
 
     @staticmethod
-    def update_category(category_id: UUID, name: str, description: str | None) -> CategoryResponse:
+    def update_category(category_id: int, name: str, description: str | None) -> CategoryResponse:
         category = db.session.get(Category, category_id)
         if not category:
             raise DomainError("NOT_FOUND", "Category not found", status_code=404)
@@ -39,7 +38,7 @@ class CatalogAdminService:
         return to_category_response(category)
 
     @staticmethod
-    def toggle_category(category_id: UUID, active: bool) -> CategoryResponse:
+    def toggle_category(category_id: int, active: bool) -> CategoryResponse:
         category = db.session.get(Category, category_id)
         if not category:
             raise DomainError("NOT_FOUND", "Category not found", status_code=404)
@@ -59,7 +58,7 @@ class CatalogAdminService:
         name: str,
         sku: str,
         price: str,
-        category_id: UUID,
+        category_id: int,
         description: str | None,
     ) -> ProductResponse:
         category = db.session.get(Category, category_id)
@@ -94,11 +93,11 @@ class CatalogAdminService:
 
     @staticmethod
     def update_product(
-        product_id: UUID,
+        product_id: int,
         name: str | None,
         sku: str | None,
         price: str | None,
-        category_id: UUID | None,
+        category_id: int | None,
         description: str | None,
     ) -> ProductResponse:
         product = db.session.get(Product, product_id)
@@ -108,7 +107,7 @@ class CatalogAdminService:
             "name": product.name,
             "sku": product.sku,
             "price": str(product.price),
-            "category_id": str(product.category_id),
+            "category_id": product.category_id,
             "description": product.description,
         }
         if name:
@@ -132,14 +131,14 @@ class CatalogAdminService:
                 "name": product.name,
                 "sku": product.sku,
                 "price": str(product.price),
-                "category_id": str(product.category_id),
+                "category_id": product.category_id,
                 "description": product.description,
             },
         )
         return to_product_response(product, None)
 
     @staticmethod
-    def toggle_product(product_id: UUID, active: bool) -> ProductResponse:
+    def toggle_product(product_id: int, active: bool) -> ProductResponse:
         product = db.session.get(Product, product_id)
         if not product:
             raise DomainError("NOT_FOUND", "Product not found", status_code=404)

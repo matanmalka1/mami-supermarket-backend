@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 
 from ...extensions import db
 from ...middleware.error_handler import DomainError
@@ -10,7 +9,7 @@ class WishlistService:
     """Manage a user's wishlist entries."""
 
     @staticmethod
-    def list_items(user_id: UUID) -> list[dict]:
+    def list_items(user_id: int) -> list[dict]:
         items = (
             db.session.query(WishlistItem)
             .filter_by(user_id=user_id)
@@ -26,7 +25,7 @@ class WishlistService:
         ]
 
     @staticmethod
-    def add_item(user_id: UUID, product_id: UUID) -> dict:
+    def add_item(user_id: int, product_id: int) -> dict:
         product = db.session.get(Product, product_id)
         if not product:
             raise DomainError("PRODUCT_NOT_FOUND", "Product not found", status_code=404)
@@ -49,7 +48,7 @@ class WishlistService:
         }
 
     @staticmethod
-    def remove_item(user_id: UUID, product_id: UUID) -> bool:
+    def remove_item(user_id: int, product_id: int) -> bool:
         item = (
             db.session.query(WishlistItem)
             .filter_by(user_id=user_id, product_id=product_id)

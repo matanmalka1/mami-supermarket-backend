@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, ForeignKey, String, Enum as SQLEnum , Integer
+from sqlalchemy import Column, ForeignKey, String, Enum as SQLEnum, Integer
 from sqlalchemy.orm import relationship
 
 from .base import Base, SoftDeleteMixin, TimestampMixin
@@ -8,7 +8,8 @@ from .enums import Role
 
 class User(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "users"
-
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(320), unique=True, nullable=False, index=True)
     full_name = Column(String(128), nullable=False)
     phone = Column(String(32), nullable=True)

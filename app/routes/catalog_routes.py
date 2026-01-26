@@ -5,7 +5,7 @@ from __future__ import annotations
 from flask import Blueprint, jsonify, request
 
 from app.services.catalog_service import CatalogQueryService
-from app.utils.request_params import optional_uuid, safe_bool, safe_int
+from app.utils.request_params import optional_int, safe_bool, safe_int
 from app.utils.responses import success_envelope
 
 blueprint = Blueprint("catalog", __name__)
@@ -21,19 +21,19 @@ def list_categories():
 
 
 ## READ (Category Products)
-@blueprint.get("/categories/<uuid:category_id>/products")
+@blueprint.get("/categories/<int:category_id>/products")
 def category_products(category_id):
     limit = safe_int(request.args, "limit", 50)
     offset = safe_int(request.args, "offset", 0)
-    branch_id = optional_uuid(request.args, "branchId")
+    branch_id = optional_int(request.args, "branchId")
     products, total = CatalogQueryService.get_category_products(category_id, branch_id, limit, offset)
     return jsonify(success_envelope(products, {"total": total, "limit": limit, "offset": offset}))
 
 
 ## READ (Get Product)
-@blueprint.get("/products/<uuid:product_id>")
+@blueprint.get("/products/<int:product_id>")
 def get_product(product_id):
-    branch_id = optional_uuid(request.args, "branchId")
+    branch_id = optional_int(request.args, "branchId")
     product = CatalogQueryService.get_product(product_id, branch_id)
     return jsonify(success_envelope(product))
 
@@ -44,8 +44,8 @@ def search_products():
     limit = safe_int(request.args, "limit", 50)
     offset = safe_int(request.args, "offset", 0)
     query = request.args.get("q")
-    category_id = optional_uuid(request.args, "categoryId")
-    branch_id = optional_uuid(request.args, "branchId")
+    category_id = optional_int(request.args, "categoryId")
+    branch_id = optional_int(request.args, "branchId")
     in_stock = safe_bool(request.args.get("inStock"))
     min_price = request.args.get("min_price", type=float)
     max_price = request.args.get("max_price", type=float)
@@ -62,7 +62,7 @@ def search_products():
 @blueprint.get("/products/featured")
 def featured_products():
     limit = safe_int(request.args, "limit", 10)
-    branch_id = optional_uuid(request.args, "branchId")
+    branch_id = optional_int(request.args, "branchId")
     products = CatalogQueryService.featured_products(limit, branch_id)
     return jsonify(success_envelope(products))
 
@@ -77,7 +77,7 @@ def autocomplete():
 
 
 ## READ (Product Reviews)
-@blueprint.get("/products/<uuid:product_id>/reviews")
+@blueprint.get("/products/<int:product_id>/reviews")
 def product_reviews(product_id):
     """Return an empty list until the review feed is available."""
     return jsonify(success_envelope({"items": []}))

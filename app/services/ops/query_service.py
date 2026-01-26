@@ -1,6 +1,5 @@
 from __future__ import annotations
 from datetime import datetime
-from uuid import UUID
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
 from app.extensions import db
@@ -43,12 +42,12 @@ class OpsOrderQueryService:
         return responses, total or 0
 
     @staticmethod
-    def get_order(order_id: UUID) -> OrderResponse:
+    def get_order(order_id: int) -> OrderResponse:
         order = OpsOrderQueryService._load_order(order_id)
         return to_detail(order)
 
     @staticmethod
-    def _load_order(order_id: UUID) -> Order:
+    def _load_order(order_id: int) -> Order:
         order = db.session.execute(
             sa.select(Order)
             .where(Order.id == order_id)

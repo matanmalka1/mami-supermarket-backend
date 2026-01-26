@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from uuid import UUID
 from pydantic import Field
 from app.models.enums import MembershipTier
 from .common import DefaultModel
@@ -28,8 +27,8 @@ class AddressUpdateRequest(DefaultModel):
     country: str | None = Field(None, min_length=1, max_length=64)
 
 class AddressResponse(DefaultModel):
-    id: UUID
-    user_id: UUID
+    id: int
+    user_id: int
     address_line: str
     city: str
     postal_code: str
@@ -39,7 +38,7 @@ class AddressResponse(DefaultModel):
     lng: float | None = None
 
 class UserProfileResponse(DefaultModel):
-    id: UUID
+    id: int
     email: str
     full_name: str
     phone: str | None = None

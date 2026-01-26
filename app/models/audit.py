@@ -9,6 +9,7 @@ from .base import Base
 class Audit(Base):
     __tablename__ = "audit"
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     entity_type = Column(String(64), nullable=False, index=True)
     entity_id = Column(Integer, nullable=False, index=True)
 

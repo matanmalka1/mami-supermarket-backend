@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from uuid import UUID
 import secrets
 from app.extensions import db
 from app.models.password_reset_token import PasswordResetToken
@@ -13,7 +12,7 @@ RESET_TOKEN_EXPIRY_MINUTES = 30
 
 class PasswordResetService:
     @staticmethod
-    def create_token(user_id: UUID) -> str:
+    def create_token(user_id: int) -> str:
         token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         expires_at = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_EXPIRY_MINUTES)
@@ -26,7 +25,7 @@ class PasswordResetService:
         return token
 
     @staticmethod
-    def verify_and_consume_token(token: str, user_id: UUID) -> None:
+    def verify_and_consume_token(token: str, user_id: int) -> None:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         now = datetime.utcnow()
         prt = db.session.query(PasswordResetToken).filter(

@@ -1,7 +1,6 @@
 """Customer order endpoints."""
 
 from __future__ import annotations
-from uuid import UUID
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 from app.services.order_service import OrderService
@@ -20,17 +19,17 @@ def list_orders():
     return jsonify(success_envelope(orders, pagination_envelope(total, limit, offset)))
 
 ## READ (Get Order)
-@blueprint.get("/<uuid:order_id>")
+@blueprint.get("/<int:order_id>")
 @jwt_required()
-def get_order(order_id: UUID):
+def get_order(order_id: int):
     user_id = current_user_id()
     order = OrderService.get_order(order_id, user_id)
     return jsonify(success_envelope(order))
 
 ## UPDATE (Cancel Order)
-@blueprint.post("/<uuid:order_id>/cancel")
+@blueprint.post("/<int:order_id>/cancel")
 @jwt_required()
-def cancel_order(order_id: UUID):
+def cancel_order(order_id: int):
     user_id = current_user_id()
     payload = OrderService.cancel_order(order_id, user_id)
     return jsonify(success_envelope(payload))

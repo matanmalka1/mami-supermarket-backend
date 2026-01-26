@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 from datetime import datetime
-from uuid import UUID
 from flask import request
 from flask_jwt_extended import get_jwt_identity
 from app.middleware.error_handler import DomainError
 
-def current_user_id() -> UUID:
+def current_user_id() -> int:
     ident = get_jwt_identity()
     if not ident:
         raise DomainError("AUTH_REQUIRED", "Authentication required", status_code=401)
-    return UUID(ident)
+    try:
+        return int(ident)
+    except (TypeError, ValueError):
+        raise DomainError("AUTH_REQUIRED", "Invalid authentication identity", status_code=401)
 
 def parse_json_or_400() -> dict:
     body = request.get_json()

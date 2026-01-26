@@ -1,4 +1,3 @@
-import uuid
 from decimal import Decimal
 import pytest
 import sqlalchemy as sa
@@ -34,7 +33,7 @@ def _cart_payload(cart, *, fulfillment, branch_id, slot_id=None, addr=None):
         branch_id=branch_id,
         delivery_slot_id=slot_id,
         address=addr,
-        payment_token_id=uuid.uuid4(),
+        payment_token_id=1,
         save_as_default=False,
     )
 
@@ -186,7 +185,7 @@ def test_checkout_idempotency_in_progress(session, users, product_with_inventory
 
 def test_checkout_saves_payment_preferences(session, test_app, users):
     user, _ = users
-    CheckoutService._maybe_save_default_payment_token(user.id, uuid.uuid4(), save_as_default=True)
+    CheckoutService._maybe_save_default_payment_token(user.id, 1, save_as_default=True)
     db.session.commit()
     audit_rows = db.session.execute(
         sa.select(Audit).where(Audit.entity_type == "payment_preferences")

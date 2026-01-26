@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from uuid import UUID
-
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 
@@ -35,9 +33,9 @@ def add_item():
 
 
 ## UPDATE (Cart Item)
-@blueprint.put("/items/<uuid:item_id>")
+@blueprint.put("/items/<int:item_id>")
 @jwt_required()
-def update_item(item_id: UUID):
+def update_item(item_id: int):
     user_id = current_user_id()
     payload = CartItemUpsertRequest.model_validate(parse_json_or_400())
     cart_id = CartService.get_or_create_cart(user_id).id
@@ -46,9 +44,9 @@ def update_item(item_id: UUID):
 
 
 ## DELETE (Cart Item)
-@blueprint.delete("/items/<uuid:item_id>")
+@blueprint.delete("/items/<int:item_id>")
 @jwt_required()
-def delete_item(item_id: UUID):
+def delete_item(item_id: int):
     user_id = current_user_id()
     cart = CartService.delete_item(user_id, CartService.get_or_create_cart(user_id).id, item_id)
     return jsonify(success_envelope(cart))

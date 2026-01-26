@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from uuid import UUID
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 from app.schemas.profile import (
@@ -73,9 +72,9 @@ def create_address():
 
 
 ## UPDATE (Address)
-@blueprint.put("/addresses/<uuid:address_id>")
+@blueprint.put("/addresses/<int:address_id>")
 @jwt_required()
-def update_address(address_id: UUID):
+def update_address(address_id: int):
     """Update an existing delivery address."""
     user_id = current_user_id()
     payload = AddressUpdateRequest.model_validate(parse_json_or_400())
@@ -84,9 +83,9 @@ def update_address(address_id: UUID):
 
 
 ## UPDATE (Address Location)
-@blueprint.patch("/addresses/<uuid:address_id>/location")
+@blueprint.patch("/addresses/<int:address_id>/location")
 @jwt_required()
-def update_address_location(address_id: UUID):
+def update_address_location(address_id: int):
     """Update GPS tags for an address."""
     user_id = current_user_id()
     payload = AddressLocationRequest.model_validate(parse_json_or_400())
@@ -95,9 +94,9 @@ def update_address_location(address_id: UUID):
 
 
 ## DELETE (Address)
-@blueprint.delete("/addresses/<uuid:address_id>")
+@blueprint.delete("/addresses/<int:address_id>")
 @jwt_required()
-def delete_address(address_id: UUID):
+def delete_address(address_id: int):
     """Delete a delivery address."""
     user_id = current_user_id()
     result = AddressService.delete_address(user_id, address_id)
@@ -105,9 +104,9 @@ def delete_address(address_id: UUID):
 
 
 ## UPDATE (Default Address)
-@blueprint.patch("/addresses/<uuid:address_id>/default")
+@blueprint.patch("/addresses/<int:address_id>/default")
 @jwt_required()
-def set_default_address(address_id: UUID):
+def set_default_address(address_id: int):
     """Set an address as the default delivery address."""
     user_id = current_user_id()
     address = AddressService.set_default_address(user_id, address_id)

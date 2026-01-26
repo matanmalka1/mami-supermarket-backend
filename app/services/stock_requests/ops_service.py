@@ -1,11 +1,10 @@
-from uuid import UUID
 import sqlalchemy as sa
 from app.extensions import db
 from app.models import StockRequest
 from app.schemas.stock_requests import StockRequestResponse
 from .mappers import to_response
 
-def list_ops(branch_id: UUID | None, status: str | None, limit: int, offset: int) -> tuple[list[StockRequestResponse], int]:
+def list_ops(branch_id: int | None, status: str | None, limit: int, offset: int) -> tuple[list[StockRequestResponse], int]:
     stmt = sa.select(StockRequest).order_by(StockRequest.created_at.desc())
     if branch_id:
         stmt = stmt.where(StockRequest.branch_id == branch_id)

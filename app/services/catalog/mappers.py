@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Sequence
-from uuid import UUID
 import sqlalchemy as sa
 from app.extensions import db
 from app.models import Category, Inventory, Product
@@ -24,7 +23,7 @@ def load_inventory(product: Product) -> None:
         )
 
 
-def matches_stock(product: Product, branch_id: UUID | None, desired: bool) -> bool:
+def matches_stock(product: Product, branch_id: int | None, desired: bool) -> bool:
     load_inventory(product)
     if branch_id:
         row = next((i for i in product.inventory if i.branch_id == branch_id), None)
@@ -34,7 +33,7 @@ def matches_stock(product: Product, branch_id: UUID | None, desired: bool) -> bo
     return (quantity > 0) == desired
 
 
-def to_product_response(product: Product, branch_id: UUID | None) -> ProductResponse:
+def to_product_response(product: Product, branch_id: int | None) -> ProductResponse:
     load_inventory(product)
     branch_available: bool | None = None
     if branch_id:
@@ -59,5 +58,5 @@ def to_product_response(product: Product, branch_id: UUID | None) -> ProductResp
     )
 
 
-def map_products(items: Sequence[Product], branch_id: UUID | None) -> list[ProductResponse]:
+def map_products(items: Sequence[Product], branch_id: int | None) -> list[ProductResponse]:
     return [to_product_response(item, branch_id) for item in items]

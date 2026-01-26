@@ -1,7 +1,6 @@
 import csv
 from flask import request
 from app.utils.responses import success_envelope
-from uuid import UUID
 
 
 def handle_bulk_inventory_upload():
@@ -20,8 +19,8 @@ def handle_bulk_inventory_upload():
     errors = []
     for idx, row in enumerate(reader, 1):
         try:
-            product_id = UUID(row["product_id"])
-            branch_id = UUID(row["branch_id"])
+            product_id = int(row["product_id"])
+            branch_id = int(row["branch_id"])
             available_quantity = int(row.get("available_quantity", 0))
             reserved_quantity = int(row.get("reserved_quantity", 0))
         except Exception as e:

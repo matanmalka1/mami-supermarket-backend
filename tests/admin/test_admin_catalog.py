@@ -2,7 +2,7 @@
 
 from app.models import Category, Product
 from app.models.enums import Role
-import uuid
+import secrets
 
 
 class TestCategoryManagement:
@@ -66,7 +66,7 @@ class TestProductManagement:
 
         admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
-            unique_sku = f"SKU-{uuid.uuid4().hex[:8]}"
+            unique_sku = f"SKU-{secrets.token_hex(4)}"
             response = client.post(
                 "/api/v1/admin/products",
                 json={

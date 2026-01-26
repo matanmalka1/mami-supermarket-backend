@@ -23,6 +23,7 @@ class Order(Base, TimestampMixin):
         Index("ix_orders_created_at", "created_at"),
     )
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     order_number = Column(String(32), nullable=False, unique=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_amount = Column(Numeric(12, 2), nullable=False)
@@ -52,6 +53,7 @@ class Order(Base, TimestampMixin):
 class OrderItem(Base):
     __tablename__ = "order_items"
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     product_id = Column(Integer, nullable=False)
     name = Column(String(128), nullable=False)
@@ -69,6 +71,7 @@ class OrderItem(Base):
 class OrderDeliveryDetails(Base):
     __tablename__ = "order_delivery_details"
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, unique=True)
     delivery_slot_id = Column(Integer, ForeignKey("delivery_slots.id"))
     address = Column(String(256), nullable=False)
@@ -81,6 +84,7 @@ class OrderDeliveryDetails(Base):
 class OrderPickupDetails(Base):
     __tablename__ = "order_pickup_details"
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, unique=True)
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
     pickup_window_start = Column(DateTime, nullable=False)

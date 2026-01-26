@@ -1,6 +1,6 @@
 """Middleware for binding a request-id/correlation header."""
 
-import uuid
+import secrets
 
 from flask import g, request
 
@@ -14,7 +14,7 @@ def register_request_id(app) -> None:
     def _attach_request_id():
         request_id = request.headers.get(REQUEST_ID_HEADER)
         if not request_id:
-            request_id = uuid.uuid4().hex
+            request_id = secrets.token_hex(16)
         g.request_id = request_id
 
     @app.after_request

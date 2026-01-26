@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 from sqlalchemy import select
 from app.extensions import db
 from app.models import Inventory
@@ -8,10 +7,10 @@ from app.services.audit_service import AuditService
 
 
 class CheckoutInventoryManager:
-    def __init__(self, branch_id: UUID):
+    def __init__(self, branch_id: int):
         self.branch_id = branch_id
 
-    def lock_inventory(self, cart_items) -> dict[tuple[UUID, UUID], Inventory]:
+    def lock_inventory(self, cart_items) -> dict[tuple[int, int], Inventory]:
         inv_ids = [item.product_id for item in cart_items]
         inventory_rows = (
             db.session.execute(

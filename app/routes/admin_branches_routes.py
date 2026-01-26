@@ -1,12 +1,11 @@
 from __future__ import annotations
-from uuid import UUID
 from flask import Blueprint, jsonify, request
 from app.middleware.auth import require_role
 from flask_jwt_extended import jwt_required
 
 from app.services.inventory_service import InventoryService
 from app.services.branch_service import BranchService
-from app.utils.request_params import optional_uuid, safe_int, toggle_flag
+from app.utils.request_params import optional_int, safe_int, toggle_flag
 from app.utils.responses import success_envelope
 from app.services.inventory_bulk_service import handle_bulk_inventory_upload
 from app.models.enums import Role
@@ -30,20 +29,20 @@ def create_branch():
 
 
 ## UPDATE (Branch)
-@blueprint.patch("/branches/<uuid:branch_id>")
+@blueprint.patch("/branches/<int:branch_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def update_branch(branch_id: UUID):
+def update_branch(branch_id: int):
     payload = BranchAdminRequest.model_validate(request.get_json())
     branch = BranchService.update_branch(branch_id, payload.name, payload.address)
     return jsonify(success_envelope(branch))
 
 
 ## TOGGLE ACTIVE (Branch)
-@blueprint.patch("/branches/<uuid:branch_id>/toggle")
+@blueprint.patch("/branches/<int:branch_id>/toggle")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def toggle_branch(branch_id: UUID):
+def toggle_branch(branch_id: int):
     active = toggle_flag(request.args)
     branch = BranchService.toggle_branch(branch_id, active)
     return jsonify(success_envelope(branch))
@@ -65,10 +64,10 @@ def create_delivery_slot():
 
 
 ## UPDATE (Delivery Slot)
-@blueprint.patch("/delivery-slots/<uuid:slot_id>")
+@blueprint.patch("/delivery-slots/<int:slot_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def update_delivery_slot(slot_id: UUID):
+def update_delivery_slot(slot_id: int):
     payload = DeliverySlotAdminRequest.model_validate(request.get_json())
     slot = BranchService.update_delivery_slot(
         slot_id,
@@ -80,10 +79,10 @@ def update_delivery_slot(slot_id: UUID):
 
 
 ## TOGGLE ACTIVE (Delivery Slot)
-@blueprint.patch("/delivery-slots/<uuid:slot_id>/toggle")
+@blueprint.patch("/delivery-slots/<int:slot_id>/toggle")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def toggle_delivery_slot(slot_id: UUID):
+def toggle_delivery_slot(slot_id: int):
     active = toggle_flag(request.args)
     slot = BranchService.toggle_delivery_slot(slot_id, active)
     return jsonify(success_envelope(slot))
@@ -96,17 +95,17 @@ def toggle_delivery_slot(slot_id: UUID):
 def list_inventory():
     limit = safe_int(request.args, "limit", 50)
     offset = safe_int(request.args, "offset", 0)
-    branch_id = optional_uuid(request.args, "branchId")
-    product_id = optional_uuid(request.args, "productId")
+    branch_id = optional_int(request.args, "branchId")
+    product_id = optional_int(request.args, "productId")
     payload = InventoryService.list_inventory(branch_id, product_id, limit, offset)
     return jsonify(success_envelope(payload))
 
 
 ## UPDATE (Inventory)
-@blueprint.patch("/inventory/<uuid:inventory_id>")
+@blueprint.patch("/inventory/<int:inventory_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
-def update_inventory(inventory_id: UUID):
+def update_inventory(inventory_id: int):
     payload = InventoryUpdateRequest.model_validate(request.get_json())
     inventory = InventoryService.update_inventory(inventory_id, payload)
     return jsonify(success_envelope(inventory))

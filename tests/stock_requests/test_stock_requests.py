@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 import sqlalchemy as sa
 
@@ -27,7 +25,7 @@ def test_bulk_review_partial_success(session, users, product_with_inventory):
     payload = BulkReviewRequest(
         items=[
             BulkReviewItem(request_id=req.id, status=StockRequestStatus.APPROVED, approved_quantity=2),
-            BulkReviewItem(request_id=uuid.uuid4(), status=StockRequestStatus.APPROVED, approved_quantity=2),
+            BulkReviewItem(request_id=9999, status=StockRequestStatus.APPROVED, approved_quantity=2),
         ]
     )
     results = StockRequestService.bulk_review(payload, user.id)
@@ -39,7 +37,7 @@ def test_no_audit_on_failed_review(session, users):
     user, _ = users
     with pytest.raises(DomainError):
         StockRequestService.review(
-            request_id=uuid.uuid4(),
+        request_id=9999,
             status=StockRequestStatus.APPROVED,
             approved_quantity=1,
             rejection_reason=None,

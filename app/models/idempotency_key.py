@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import uuid
 from datetime import datetime, timedelta
 
-import sqlalchemy as sa
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint, JSON, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, DateTime, Enum as SQLEnum, ForeignKey, Index, Integer, JSON, String, UniqueConstraint
 
 from .base import Base, TimestampMixin
 from .enums import IdempotencyStatus
+
 
 class IdempotencyKey(Base, TimestampMixin):
     __tablename__ = "idempotency_keys"
@@ -18,23 +16,21 @@ class IdempotencyKey(Base, TimestampMixin):
         Index("ix_idempotency_expires_at", "expires_at"),
     )
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     key = Column(String(128), nullable=False)
     request_hash = Column(String(256), nullable=False)
-    status = Column(SQLEnum(IdempotencyStatus), nullable=False, default=IdempotencyStatus.IN_PROGRESS)
+    status = Column(
+        SQLEnum(IdempotencyStatus, name="idempotency_status"),
+        nullable=False,
+        default=IdempotencyStatus.IN_PROGRESS,
+    )
     response_payload = Column(JSON, nullable=True)
     status_code = Column(Integer, nullable=True)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, nullable=False, server_default=sa.func.now())
-    updated_at = Column(
-        DateTime,
-        nullable=False,
-        server_default=sa.func.now(),
-        onupdate=sa.func.now(),
-    )
 
     def __init__(self, **kwargs):
-        if 'expires_at' not in kwargs:
-            kwargs['expires_at'] = datetime.utcnow() + timedelta(hours=24)
+        if "expires_at" not in kwargs:
+            kwargs["expires_at"] = datetime.utcnow() + timedelta(hours=24)
         super().__init__(**kwargs)

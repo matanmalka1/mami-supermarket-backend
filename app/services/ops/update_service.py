@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
 from app.extensions import db
@@ -15,10 +14,10 @@ from .transitions import can_transition
 class OpsOrderUpdateService:
     @staticmethod
     def update_item_status(
-        order_id: UUID,
-        item_id: UUID,
+        order_id: int,
+        item_id: int,
         picked_status: str,
-        actor_id: UUID,
+        actor_id: int,
     ) -> OrderResponse:
         session = db.session
         order = session.execute(
@@ -52,9 +51,9 @@ class OpsOrderUpdateService:
 
     @staticmethod
     def update_order_status(
-        order_id: UUID,
+        order_id: int,
         status_value: str,
-        actor_id: UUID,
+        actor_id: int,
         actor_role: Role,
     ) -> OrderResponse:
         session = db.session

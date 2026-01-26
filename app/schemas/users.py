@@ -1,7 +1,7 @@
 """User management schemas for admin endpoints."""
 
 from __future__ import annotations
-from uuid import UUID
+
 from datetime import datetime
 from ..models.enums import Role
 from .common import DefaultModel
@@ -9,7 +9,7 @@ from .common import DefaultModel
 
 class UserListItem(DefaultModel):
     """User list item response."""
-    id: UUID
+    id: int
     email: str
     full_name: str
     phone: str | None
@@ -21,13 +21,13 @@ class UserListItem(DefaultModel):
 
 class UserDetailResponse(DefaultModel):
     """Detailed user response."""
-    id: UUID
+    id: int
     email: str
     full_name: str
     phone: str | None
     role: Role
     is_active: bool
-    default_branch_id: UUID | None
+    default_branch_id: int | None
     created_at: datetime
     updated_at: datetime
 

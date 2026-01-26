@@ -1,17 +1,17 @@
 from __future__ import annotations
 from decimal import Decimal
-from uuid import UUID
+
 from .common import DefaultModel, Pagination
 
 class CategoryResponse(DefaultModel):
-    id: UUID
+    id: int
     name: str
     icon_slug: str | None = None
     description: str | None
     is_active: bool = True
 
 class ProductResponse(DefaultModel):
-    id: UUID
+    id: int
     name: str
     sku: str
     price: Decimal
@@ -22,7 +22,7 @@ class ProductResponse(DefaultModel):
     bin_location: str | None = None
     image_url: str | None = None
     description: str | None
-    category_id: UUID
+    category_id: int
     is_active: bool
     in_stock_anywhere: bool
     in_stock_for_branch: bool | None = None
@@ -36,7 +36,7 @@ class ProductSearchResponse(DefaultModel):
     pagination: Pagination
 
 class AutocompleteItem(DefaultModel):
-    id: UUID
+    id: int
     name: str
 
 class AutocompleteResponse(Pagination):
@@ -50,12 +50,12 @@ class ProductAdminRequest(DefaultModel):
     name: str
     sku: str
     price: Decimal
-    category_id: UUID
+    category_id: int
     description: str | None = None
 
 class ProductUpdateRequest(DefaultModel):
     name: str | None = None
     sku: str | None = None
     price: Decimal | None = None
-    category_id: UUID | None = None
+    category_id: int | None = None
     description: str | None = None

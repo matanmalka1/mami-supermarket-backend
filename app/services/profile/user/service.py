@@ -1,7 +1,6 @@
 """Profile management service."""
 
 from __future__ import annotations
-from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from ....extensions import db
 from ....middleware.error_handler import DomainError
@@ -17,7 +16,7 @@ from app.services.audit_service import AuditService
 
 class ProfileService:
     @staticmethod
-    def get_user_profile(user_id: UUID) -> UserProfileResponse:
+    def get_user_profile(user_id: int) -> UserProfileResponse:
         """Get user profile information."""
         user = db.session.query(User).filter_by(id=user_id, is_active=True).first()
         if not user:
@@ -32,7 +31,7 @@ class ProfileService:
         )
 
     @staticmethod
-    def update_phone(user_id: UUID, data: UpdatePhoneRequest) -> UserProfileResponse:
+    def update_phone(user_id: int, data: UpdatePhoneRequest) -> UserProfileResponse:
         """Update user phone number."""
         user = db.session.query(User).filter_by(id=user_id, is_active=True).first()
         if not user:
@@ -58,7 +57,7 @@ class ProfileService:
         return ProfileService.get_user_profile(user_id)
 
     @staticmethod
-    def update_profile(user_id: UUID, data: UpdateProfileRequest) -> UserProfileResponse:
+    def update_profile(user_id: int, data: UpdateProfileRequest) -> UserProfileResponse:
         """Update user profile information."""
         user = db.session.query(User).filter_by(id=user_id, is_active=True).first()
         if not user:
@@ -97,7 +96,7 @@ class ProfileService:
         return ProfileService.get_user_profile(user_id)
 
     @staticmethod
-    def update_membership(user_id: UUID, tier: MembershipTier) -> MembershipTier:
+    def update_membership(user_id: int, tier: MembershipTier) -> MembershipTier:
         user = db.session.query(User).filter_by(id=user_id, is_active=True).first()
         if not user:
             raise DomainError("USER_NOT_FOUND", "User not found", status_code=404)

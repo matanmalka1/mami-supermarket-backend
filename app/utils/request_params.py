@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 from enum import Enum
 from typing import TypeVar, Type
 
@@ -60,15 +59,6 @@ def parse_enum(value: str | None, enum_class: Type[T]) -> T | None:
     try:
         return enum_class(value)
     except (ValueError, KeyError):
-        return None
-
-def optional_uuid(args, name: str) -> UUID | None:
-    value = args.get(name)
-    if not value:
-        return None
-    try:
-        return UUID(value)
-    except ValueError:
         return None
 
 def toggle_flag(args) -> bool:

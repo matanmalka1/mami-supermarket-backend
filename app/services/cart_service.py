@@ -1,6 +1,5 @@
 from __future__ import annotations
 from decimal import Decimal
-from uuid import UUID, uuid4
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from ..extensions import db
@@ -12,7 +11,7 @@ from ..services.audit_service import AuditService
 
 class CartService:
     @staticmethod
-    def _audit(cart_id: UUID, action: str, actor_user_id: UUID | None, **kwargs) -> None:
+    def _audit(cart_id: int, action: str, actor_user_id: int | None, **kwargs) -> None:
         AuditService.log_event(
             entity_type="cart",
             action=action,
@@ -21,20 +20,20 @@ class CartService:
             **kwargs,
         )
     @staticmethod
-    def get_or_create_cart(user_id: UUID) -> Cart:
+    def get_or_create_cart(user_id: int) -> Cart:
         cart = db.session.query(Cart).options(selectinload(Cart.items)).filter_by(user_id=user_id).first()
         if cart is None:
-            cart = Cart(id=uuid4(), user_id=user_id)
+            cart = Cart(user_id=user_id)
             db.session.add(cart)
             db.session.commit()
         return cart
     
     @staticmethod
-    def get_cart(user_id: UUID) -> CartResponse:
+    def get_cart(user_id: int) -> CartResponse:
         return CartService._to_response(CartService.get_or_create_cart(user_id))
 
     @staticmethod
-    def add_item(user_id: UUID, product_id: UUID, quantity: int) -> CartResponse:
+    def add_item(user_id: int, product_id: int, quantity: int) -> CartResponse:
         if quantity <= 0:
             raise DomainError("INVALID_QUANTITY", "Quantity must be positive")
         
@@ -48,7 +47,6 @@ class CartService:
             db.session.add(existing)
         else:
             item = CartItem(
-                id=uuid4(),
                 cart_id=cart.id,
                 product_id=product_id,
                 quantity=quantity,
@@ -61,7 +59,7 @@ class CartService:
         return CartService._to_response(CartService._reload_cart(cart.id))
     
     @staticmethod
-    def update_item(user_id: UUID, cart_id: UUID, item_id: UUID, quantity: int) -> CartResponse:
+    def update_item(user_id: int, cart_id: int, item_id: int, quantity: int) -> CartResponse:
         if quantity <= 0:
             raise DomainError("INVALID_QUANTITY", "Quantity must be positive")
         
@@ -89,7 +87,7 @@ class CartService:
         return CartService._to_response(CartService._reload_cart(cart.id))
     
     @staticmethod
-    def delete_item(user_id: UUID, cart_id: UUID, item_id: UUID) -> CartResponse:
+    def delete_item(user_id: int, cart_id: int, item_id: int) -> CartResponse:
         cart = CartService._get_cart_for_user(cart_id, user_id)
         item = db.session.get(CartItem, item_id)
         if not item or item.cart_id != cart.id:
@@ -100,7 +98,7 @@ class CartService:
         return CartService._to_response(CartService._reload_cart(cart.id))
     
     @staticmethod
-    def clear_cart(user_id: UUID, cart_id: UUID) -> CartResponse:
+    def clear_cart(user_id: int, cart_id: int) -> CartResponse:
         cart = CartService._get_cart_for_user(cart_id, user_id)
         for item in list(cart.items):
             db.session.delete(item)
@@ -109,7 +107,7 @@ class CartService:
         return CartService._to_response(CartService._reload_cart(cart.id))
     
     @staticmethod
-    def _validate_product(product_id: UUID) -> Product:
+    def _validate_product(product_id: int) -> Product:
         product = db.session.get(Product, product_id)
         if not product or not product.is_active:
             raise DomainError("PRODUCT_INACTIVE", "Product is inactive or missing", status_code=404)
@@ -122,14 +120,14 @@ class CartService:
             raise DomainError("OUT_OF_STOCK_ANYWHERE", "Product is out of stock")
         
     @staticmethod
-    def _get_cart_for_user(cart_id: UUID, user_id: UUID) -> Cart:
+    def _get_cart_for_user(cart_id: int, user_id: int) -> Cart:
         cart = db.session.get(Cart, cart_id)
         if not cart or cart.user_id != user_id:
             raise DomainError("NOT_FOUND", "Cart not found", status_code=404)
         return cart
     
     @staticmethod
-    def _reload_cart(cart_id: UUID) -> Cart:
+    def _reload_cart(cart_id: int) -> Cart:
         return db.session.execute(select(Cart).where(Cart.id == cart_id).options(selectinload(Cart.items))).scalar_one()
 
     @staticmethod

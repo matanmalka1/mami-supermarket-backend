@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import date, datetime
-from uuid import UUID
+
 from pydantic import Field
 from .common import DefaultModel
 from ..models.enums import OrderStatus, PickedStatus
@@ -13,7 +13,7 @@ class OpsOrdersQuery(DefaultModel):
     offset: int = Field(default=0, ge=0)
 
 class OpsOrderResponse(DefaultModel):
-    order_id: UUID
+    order_id: int
     order_number: str
     status: OrderStatus
     urgency_rank: int

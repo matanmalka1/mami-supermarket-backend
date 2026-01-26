@@ -11,6 +11,7 @@ class Inventory(Base, TimestampMixin):
         UniqueConstraint("product_id", "branch_id", name="uq_inventory_product_branch"),
     )
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
     available_quantity = Column(Integer, nullable=False, default=0)

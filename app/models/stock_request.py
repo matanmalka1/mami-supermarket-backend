@@ -14,6 +14,7 @@ class StockRequest(Base, TimestampMixin):
         Index("ix_stock_requests_created_at", "created_at"),
     )
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     quantity = Column(Integer, nullable=False)

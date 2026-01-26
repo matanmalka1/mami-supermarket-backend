@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
 from app.extensions import db
@@ -19,8 +18,8 @@ class CatalogQueryService:
 
     @staticmethod
     def get_category_products(
-        category_id: UUID,
-        branch_id: UUID | None,
+        category_id: int,
+        branch_id: int | None,
         limit: int,
         offset: int,
     ) -> tuple[list[ProductResponse], int]:
@@ -42,7 +41,7 @@ class CatalogQueryService:
         return map_products(products, branch_id), total or 0
 
     @staticmethod
-    def get_product(product_id: UUID, branch_id: UUID | None) -> ProductResponse:
+    def get_product(product_id: int, branch_id: int | None) -> ProductResponse:
         stmt = sa.select(Product).where(Product.id == product_id).options(selectinload(Product.inventory).selectinload(Inventory.branch))
         product = db.session.execute(stmt).scalar_one_or_none()
         if not product or not product.is_active:
@@ -52,9 +51,9 @@ class CatalogQueryService:
     @staticmethod
     def search_products(
         query: str | None,
-        category_id: UUID | None,
+        category_id: int | None,
         in_stock: bool | None,
-        branch_id: UUID | None,
+        branch_id: int | None,
         limit: int,
         offset: int,
         min_price: float | None = None,
@@ -108,7 +107,7 @@ class CatalogQueryService:
         return map_products(products, branch_id), total or 0
 
     @staticmethod
-    def featured_products(limit: int, branch_id: UUID | None) -> list[ProductResponse]:
+    def featured_products(limit: int, branch_id: int | None) -> list[ProductResponse]:
         stmt = (
             sa.select(Product)
             .where(Product.is_active.is_(True))

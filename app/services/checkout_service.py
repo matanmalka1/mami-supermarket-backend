@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from uuid import UUID
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -117,7 +116,7 @@ class CheckoutService:
         return CheckoutIdempotencyManager.hash_request(payload)
 
     @staticmethod
-    def _maybe_save_default_payment_token(user_id: UUID, payment_token_id: UUID, save_as_default: bool) -> None:
+    def _maybe_save_default_payment_token(user_id: int, payment_token_id: int, save_as_default: bool) -> None:
         if not save_as_default:
             return
         # Placeholder for future default-payment preference persistence.

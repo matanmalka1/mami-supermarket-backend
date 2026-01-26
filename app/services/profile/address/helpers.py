@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from typing import Any
-from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 
@@ -14,7 +13,7 @@ from ...audit_service import AuditService
 ENTITY_TYPE = "address"
 
 
-def fetch_address(user_id: UUID, address_id: UUID) -> Address:
+def fetch_address(user_id: int, address_id: int) -> Address:
     address = db.session.query(Address).filter_by(id=address_id, user_id=user_id).first()
     if not address:
         raise DomainError("ADDRESS_NOT_FOUND", "Address not found", status_code=404)
@@ -22,8 +21,8 @@ def fetch_address(user_id: UUID, address_id: UUID) -> Address:
 
 
 def commit_with_audit(
-    user_id: UUID,
-    entity_id: UUID,
+    user_id: int,
+    entity_id: int,
     action: str,
     error_message: str,
     **log_kwargs: Any,

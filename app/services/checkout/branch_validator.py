@@ -1,6 +1,5 @@
 from __future__ import annotations
 from datetime import time
-from uuid import UUID
 from flask import current_app
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -11,7 +10,7 @@ from app.services.branch_service import BranchService
 
 class CheckoutBranchValidator:
     @staticmethod
-    def resolve_branch(fulfillment_type: FulfillmentType | None, branch_id: UUID | None) -> UUID:
+    def resolve_branch(fulfillment_type: FulfillmentType | None, branch_id: int | None) -> int:
         if fulfillment_type == FulfillmentType.DELIVERY:
             source_id = current_app.config.get("DELIVERY_SOURCE_BRANCH_ID", "")
             branch = BranchService.ensure_delivery_source_branch_exists(source_id)
@@ -24,7 +23,7 @@ class CheckoutBranchValidator:
         raise DomainError("BAD_REQUEST", "Branch is required for pickup", status_code=400)
 
     @staticmethod
-    def validate_delivery_slot(fulfillment_type: FulfillmentType | None, slot_id: UUID | None, branch_id: UUID) -> None:
+    def validate_delivery_slot(fulfillment_type: FulfillmentType | None, slot_id: int | None, branch_id: int) -> None:
         if fulfillment_type != FulfillmentType.DELIVERY:
             return
         if not slot_id:

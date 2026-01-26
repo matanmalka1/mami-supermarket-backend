@@ -3,7 +3,6 @@
 from __future__ import annotations
 from decimal import Decimal
 from typing import Any, Mapping
-from uuid import UUID
 from pydantic import BaseModel
 
 def _serialize(value: Any) -> Any:
@@ -14,7 +13,7 @@ def _serialize(value: Any) -> Any:
         return [_serialize(item) for item in value]
     if isinstance(value, dict):
         return {key: _serialize(val) for key, val in value.items()}
-    if isinstance(value, (Decimal, UUID)):
+    if isinstance(value, Decimal):
         return str(value)
     return value
 

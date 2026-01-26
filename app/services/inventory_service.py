@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from uuid import UUID
-
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
@@ -20,8 +18,8 @@ from .audit_service import AuditService
 class InventoryService:
     @staticmethod
     def list_inventory(
-        branch_id: UUID | None,
-        product_id: UUID | None,
+        branch_id: int | None,
+        product_id: int | None,
         limit: int,
         offset: int,
     ) -> InventoryListResponse:
@@ -57,7 +55,7 @@ class InventoryService:
         })
 
     @staticmethod
-    def update_inventory(item_id: UUID, payload: InventoryUpdateRequest) -> InventoryResponse:
+    def update_inventory(item_id: int, payload: InventoryUpdateRequest) -> InventoryResponse:
         inventory = db.session.get(Inventory, item_id)
         if not inventory:
             raise DomainError("NOT_FOUND", "Inventory not found", status_code=404)

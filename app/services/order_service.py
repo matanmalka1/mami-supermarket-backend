@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from uuid import UUID
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
 from app.extensions import db
@@ -15,7 +14,7 @@ from app.services.audit_service import AuditService
 
 class OrderService:
     @staticmethod
-    def list_orders(user_id: UUID, limit: int, offset: int) -> tuple[list[OrderResponse], int]:
+    def list_orders(user_id: int, limit: int, offset: int) -> tuple[list[OrderResponse], int]:
         stmt = (
             sa.select(Order)
             .where(Order.user_id == user_id)
@@ -31,14 +30,14 @@ class OrderService:
         return [OrderService._to_response(order) for order in orders], total or 0
 
     @staticmethod
-    def get_order(order_id: UUID, user_id: UUID) -> OrderResponse:
+    def get_order(order_id: int, user_id: int) -> OrderResponse:
         order = OrderService._load_order(order_id)
         if order.user_id != user_id:
             raise DomainError("NOT_FOUND", "Order not found", status_code=404)
         return OrderService._to_response(order)
 
     @staticmethod
-    def cancel_order(order_id: UUID, user_id: UUID) -> CancelOrderResponse:
+    def cancel_order(order_id: int, user_id: int) -> CancelOrderResponse:
         session = db.session
         order = session.execute(
             sa.select(Order).where(Order.id == order_id).with_for_update()
@@ -68,7 +67,7 @@ class OrderService:
         return CancelOrderResponse(order_id=order.id, canceled_at=canceled_at)
 
     @staticmethod
-    def _load_order(order_id: UUID) -> Order:
+    def _load_order(order_id: int) -> Order:
         order = db.session.execute(
             sa.select(Order).where(Order.id == order_id).options(selectinload(Order.items))
         ).scalar_one_or_none()

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from uuid import UUID
 from flask import Blueprint, jsonify, request, g
 from flask_jwt_extended import jwt_required
 
@@ -20,6 +19,7 @@ from app.services.ops.custom_ops_service import (
 from app.services.stock_requests_service import StockRequestService
 from app.schemas.stock_requests import StockRequestCreateRequest
 from app.schemas.ops import UpdatePickStatusRequest, UpdateOrderStatusRequest
+from app.utils.request_params import optional_int
 from app.utils.request_utils import current_user_id, parse_pagination, parse_iso_date
 from app.utils.responses import pagination_envelope, success_envelope
 
@@ -48,19 +48,19 @@ def list_orders():
 
 
 ## READ (Get Order)
-@blueprint.get("/orders/<uuid:order_id>")
+@blueprint.get("/orders/<int:order_id>")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
-def get_order(order_id: UUID):
+def get_order(order_id: int):
     order = OpsOrderService.get_order(order_id)
     return jsonify(success_envelope(order))
 
 
 ## UPDATE (Picked Status)
-@blueprint.patch("/orders/<uuid:order_id>/items/<uuid:item_id>/picked-status")
+@blueprint.patch("/orders/<int:order_id>/items/<int:item_id>/picked-status")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
-def update_picked_status(order_id: UUID, item_id: UUID):
+def update_picked_status(order_id: int, item_id: int):
     payload = UpdatePickStatusRequest.model_validate(request.get_json() or {})
     order = OpsOrderService.update_item_status(order_id, item_id, payload.picked_status, current_user_id())
     return jsonify(success_envelope(order))
@@ -84,10 +84,9 @@ def create_batch():
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def list_ops_stock_requests():
     limit, offset = parse_pagination()
-    branch_id = request.args.get("branchId")
+    branch_id = optional_int(request.args, "branchId")
     status = request.args.get("status")
-    branch_id_uuid = UUID(branch_id) if branch_id else None
-    rows, total = StockRequestService.list_ops(branch_id_uuid, status, limit, offset)
+    rows, total = StockRequestService.list_ops(branch_id, status, limit, offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
 
 # Endpoint: POST /api/v1/ops/stock-requests
@@ -121,10 +120,10 @@ def get_alerts():
 
 
 ## UPDATE (Order Status)
-@blueprint.patch("/orders/<uuid:order_id>/status")
+@blueprint.patch("/orders/<int:order_id>/status")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
-def update_order_status(order_id: UUID):
+def update_order_status(order_id: int):
     payload = UpdateOrderStatusRequest.model_validate(request.get_json() or {})
     user = getattr(g, "current_user", None)
     actor_role = user.role if user else Role.EMPLOYEE

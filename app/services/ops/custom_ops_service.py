@@ -4,7 +4,6 @@ from uuid import uuid4
 from app.services.ops.performance_service import OpsPerformanceService
 
 def create_batch_for_ops(user_id, batch_payload):
-    # TODO: implement real batch creation logic
     return {"id": str(uuid4()), "created_by": str(user_id), "payload": batch_payload}
 
 def get_ops_performance(user_id):

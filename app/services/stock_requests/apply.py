@@ -1,5 +1,4 @@
 from __future__ import annotations
-from uuid import UUID
 import sqlalchemy as sa
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -9,11 +8,11 @@ from app.services.audit_service import AuditService
 
 
 def apply_inventory_change(
-    branch_id: UUID,
-    product_id: UUID,
+    branch_id: int,
+    product_id: int,
     request_type: StockRequestType,
     approved_quantity: int,
-    actor_id: UUID,
+    actor_id: int,
 ) -> None:
     session = db.session
     inventory = session.execute(
