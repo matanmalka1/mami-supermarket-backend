@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import uuid
-
 from sqlalchemy import (
     Column,
     DateTime,
@@ -12,7 +10,6 @@ from sqlalchemy import (
     String,
     Integer,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from .base import Base, TimestampMixin
@@ -26,9 +23,8 @@ class Order(Base, TimestampMixin):
         Index("ix_orders_created_at", "created_at"),
     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_number = Column(String(32), nullable=False, unique=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_amount = Column(Numeric(12, 2), nullable=False)
     fulfillment_type = Column(SQLEnum(FulfillmentType, name="fulfillment_type"), nullable=False)
     status = Column(
@@ -36,7 +32,7 @@ class Order(Base, TimestampMixin):
         nullable=False,
         server_default=OrderStatus.CREATED.value,
     )
-    branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"))
+    branch_id = Column(Integer, ForeignKey("branches.id"))
 
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
@@ -56,9 +52,8 @@ class Order(Base, TimestampMixin):
 class OrderItem(Base):
     __tablename__ = "order_items"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False)
-    product_id = Column(UUID(as_uuid=True), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    product_id = Column(Integer, nullable=False)
     name = Column(String(128), nullable=False)
     sku = Column(String(64), nullable=False)
     unit_price = Column(Numeric(10, 2), nullable=False)
@@ -74,9 +69,8 @@ class OrderItem(Base):
 class OrderDeliveryDetails(Base):
     __tablename__ = "order_delivery_details"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False, unique=True)
-    delivery_slot_id = Column(UUID(as_uuid=True), ForeignKey("delivery_slots.id"))
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, unique=True)
+    delivery_slot_id = Column(Integer, ForeignKey("delivery_slots.id"))
     address = Column(String(256), nullable=False)
     slot_start = Column(DateTime, nullable=True)
     slot_end = Column(DateTime, nullable=True)
@@ -87,9 +81,8 @@ class OrderDeliveryDetails(Base):
 class OrderPickupDetails(Base):
     __tablename__ = "order_pickup_details"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False, unique=True)
-    branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, unique=True)
+    branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
     pickup_window_start = Column(DateTime, nullable=False)
     pickup_window_end = Column(DateTime, nullable=False)
 

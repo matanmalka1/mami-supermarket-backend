@@ -18,7 +18,6 @@ class IdempotencyKey(Base, TimestampMixin):
         Index("ix_idempotency_expires_at", "expires_at"),
     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     key = Column(String(128), nullable=False)
     request_hash = Column(String(256), nullable=False)

@@ -1,8 +1,8 @@
 from __future__ import annotations
-import uuid
+
 from sqlalchemy import Column, Enum as SQLEnum, ForeignKey, Index, Integer
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from .base import Base, TimestampMixin
 from .enums import StockRequestStatus, StockRequestType
 
@@ -14,9 +14,8 @@ class StockRequest(Base, TimestampMixin):
         Index("ix_stock_requests_created_at", "created_at"),
     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False)
-    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
+    branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
     request_type = Column(SQLEnum(StockRequestType, name="stock_request_type"), nullable=False)
     status = Column(
@@ -24,7 +23,7 @@ class StockRequest(Base, TimestampMixin):
         nullable=False,
         server_default=StockRequestStatus.PENDING.value,
     )
-    actor_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    actor_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     branch = relationship("Branch")
     product = relationship("Product")

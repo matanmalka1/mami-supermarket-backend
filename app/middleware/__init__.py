@@ -7,7 +7,6 @@ from .request_logger import register_request_logger
 from .security_headers import register_security_headers
 from .db_session import register_db_session_teardown
 
-
 def register_middlewares(app) -> None:
     register_cors(app)
     register_request_id(app)

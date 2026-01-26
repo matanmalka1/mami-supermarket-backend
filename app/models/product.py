@@ -1,8 +1,7 @@
 from __future__ import annotations
-import uuid
-from sqlalchemy import Column, ForeignKey, Index, Numeric, String, Text
+
+from sqlalchemy import Column, ForeignKey, Index, Numeric, String, Text,Integer
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .base import Base, SoftDeleteMixin, TimestampMixin
 
@@ -13,10 +12,9 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
         Index("ix_products_category_id", "category_id"),
     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(128), nullable=False)
     sku = Column(String(64), nullable=False, unique=True, index=True)
-    category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=False)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     price = Column(Numeric(12, 2), nullable=False)
     old_price = Column(Numeric(12, 2), nullable=True)
     unit = Column(String(24), nullable=True)
