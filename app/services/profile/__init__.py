@@ -1,4 +1,4 @@
-"""Profile and address services."""
+"""Profile services helpers."""
 
 from .user import ProfileService
 from .address import AddressService
