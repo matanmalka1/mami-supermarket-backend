@@ -19,8 +19,8 @@ def _configure_email(test_app):
     test_app.config.update(
         {
             "BREVO_API_KEY": "test-key",
-            "BREVO_TEMPLATE_ID": "1",
-            "SENDER_EMAIL": "sender@example.com",
+            "BREVO_RESET_TOKEM_OTP_ID": "1",
+            "BREVO_SENDER_EMAIL": "sender@example.com",
             "FRONTEND_BASE_URL": "http://frontend",
             "APP_ENV": "development",
         }

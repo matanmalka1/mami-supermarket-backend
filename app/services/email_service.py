@@ -8,8 +8,8 @@ BREVO_SEND_URL = "https://api.brevo.com/v3/smtp/email"
 
 def send_password_reset_email(to_email: str, reset_url: str) -> None:
     api_key = current_app.config.get("BREVO_API_KEY")
-    template_id = current_app.config.get("BREVO_TEMPLATE_ID")
-    sender_email = current_app.config.get("SENDER_EMAIL")
+    template_id = current_app.config.get("BREVO_RESET_TOKEM_OTP_ID")
+    sender_email = current_app.config.get("BREVO_SENDER_EMAIL")
     if not api_key or not template_id or not sender_email:
         raise DomainError("EMAIL_CONFIG_MISSING", "Email service is not configured")
     try:
