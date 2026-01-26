@@ -6,7 +6,6 @@ from sqlalchemy.orm import relationship
 
 from .base import Base, TimestampMixin
 
-
 class WishlistItem(Base, TimestampMixin):
     __tablename__ = "wishlist_items"
     __table_args__ = (

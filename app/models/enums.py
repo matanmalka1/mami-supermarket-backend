@@ -7,11 +7,9 @@ class Role(str, Enum):
     MANAGER = "MANAGER"
     ADMIN = "ADMIN"
 
-
 class MembershipTier(str, Enum):
     FREE = "FREE"
     PREMIUM = "PREMIUM"
-
 
 class OrderStatus(str, Enum):
     CREATED = "CREATED"

@@ -7,7 +7,6 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from .base import Base, TimestampMixin
 
-
 class RegistrationOTP(Base, TimestampMixin):
     __tablename__ = "registration_otps"
 

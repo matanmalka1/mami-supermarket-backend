@@ -6,7 +6,6 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
-
 class TimestampMixin:
     """Shared timestamps for most entities."""
 
@@ -17,7 +16,6 @@ class TimestampMixin:
         server_default=sa.func.now(),
         onupdate=sa.func.now(),
     )
-
 
 class SoftDeleteMixin:
     """Flagged entities for soft deletion."""

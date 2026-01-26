@@ -4,7 +4,6 @@ from app.middleware.error_handler import DomainError
 from app.schemas.auth import RegisterRequest
 from app.services.auth_service import AuthService
 
-
 def test_register_and_authenticate(session, test_app):
     with test_app.app_context():
         payload = RegisterRequest(email="user@example.com", password="secret123", full_name="User One")

@@ -16,13 +16,11 @@ from ..middleware.error_handler import DomainError
 
 ResourceLoader = Callable[..., object]
 
-
 def _current_user() -> User:
     identity = get_jwt_identity()
     if not identity:
         raise DomainError("AUTH_REQUIRED", "Authentication required", status_code=401)
     return db.session.get(User, UUID(identity))
-
 
 def require_auth(view: Callable) -> Callable:
     @wraps(view)
@@ -32,7 +30,6 @@ def require_auth(view: Callable) -> Callable:
         return view(*args, **kwargs)
 
     return wrapper
-
 
 def require_role(*roles: Role | str) -> Callable:
     def decorator(view: Callable) -> Callable:
@@ -52,7 +49,6 @@ def require_role(*roles: Role | str) -> Callable:
         return wrapper
 
     return decorator
-
 
 def require_ownership(loader: ResourceLoader) -> Callable:
     def decorator(view: Callable) -> Callable:

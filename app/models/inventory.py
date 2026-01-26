@@ -8,7 +8,6 @@ from sqlalchemy.orm import relationship
 
 from .base import Base, TimestampMixin
 
-
 class Inventory(Base, TimestampMixin):
     __tablename__ = "inventory"
     __table_args__ = (
