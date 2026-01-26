@@ -1,7 +1,5 @@
 from app.models.enums import Role
 
-import pytest
-
 def test_admin_settings_get(test_app, auth_header, create_user_with_role):
     """GET /api/v1/admin/settings returns settings envelope for admin only (אמיתי)."""
     admin = create_user_with_role(role=Role.ADMIN)

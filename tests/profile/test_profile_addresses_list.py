@@ -1,8 +1,6 @@
 """Tests for address list and create endpoints."""
 
-import pytest
 from tests.profile.profile_fixtures import customer_user, customer_with_addresses
-
 
 class TestListAddresses:
     """Tests for GET /api/v1/me/addresses"""
@@ -32,7 +30,6 @@ class TestListAddresses:
         with test_app.test_client() as client:
             response = client.get("/api/v1/me/addresses")
             assert response.status_code == 401
-
 
 class TestCreateAddress:
     """Tests for POST /api/v1/me/addresses"""

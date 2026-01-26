@@ -1,12 +1,7 @@
 """Tests for admin branch management endpoints."""
 
-import pytest
-from app.models import User, Branch, Inventory, Product, Category
+from app.models import  Branch, Inventory, Product, Category
 from app.models.enums import Role
-
-
-
-
 
 class TestBranchManagement:
     """Tests for branch CRUD"""

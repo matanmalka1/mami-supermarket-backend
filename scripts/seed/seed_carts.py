@@ -24,7 +24,7 @@ def _get_or_create_active_cart(session: Session, *, user_id) -> Cart:
 
     cart = Cart(user_id=user_id, status=CartStatus.ACTIVE)
     session.add(cart)
-    session.flush()  # צריך cart.id לפריטים
+    session.flush()  
     return cart
 
 
@@ -72,11 +72,11 @@ def seed_carts(session: Session, *, max_items_per_cart: int = 6) -> list[Cart]:
     if not products:
         raise RuntimeError("No products found. Seed products first.")
 
-    rnd = random.Random(123)  # יציב
+    rnd = random.Random(123) 
 
     created_carts: list[Cart] = []
 
-    # נזרע רק ללקוחות כדי שיהיה ריאליסטי
+ 
     from app.models.enums import Role
     customers = [u for u in users if getattr(u, "role", None) == Role.CUSTOMER]
 
@@ -86,7 +86,6 @@ def seed_carts(session: Session, *, max_items_per_cart: int = 6) -> list[Cart]:
         cart = _get_or_create_active_cart(session, user_id=u.id)
         created_carts.append(cart)
 
-        # בוחרים 2..max פריטים רנדומלית
         k = rnd.randint(2, max_items_per_cart)
         chosen = rnd.sample(products, k=min(k, len(products)))
 
@@ -97,7 +96,7 @@ def seed_carts(session: Session, *, max_items_per_cart: int = 6) -> list[Cart]:
                 cart_id=cart.id,
                 product_id=p.id,
                 quantity=qty,
-                unit_price=str(p.price),  # Numeric(10,2) safe as string
+                unit_price=str(p.price), 
             )
 
     session.flush()

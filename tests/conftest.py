@@ -5,7 +5,6 @@ from datetime import time
 
 import pytest
 
-
 pytest_plugins = ["tests.profile.profile_fixtures"]
 
 from flask_jwt_extended import create_access_token
@@ -24,7 +23,6 @@ from app.models.enums import Role
 def client(test_app):
     return test_app.test_client()
 
-# יצירת משתמש עם role דינמי
 @pytest.fixture
 def create_user_with_role(session):
     def _create(role):
@@ -52,7 +50,6 @@ def admin_token(session, test_app):
         token = create_access_token(identity=str(admin.id), additional_claims={"role": admin.role.value})
     return token
 
-# Ensure at least one product exists for contract tests
 @pytest.fixture(autouse=True)
 def ensure_product(session):
     if not session.query(Product).first():
@@ -78,7 +75,6 @@ def test_app():
     app.config["TESTING"] = True
     with app.app_context():
         Base.metadata.create_all(bind=db.engine)
-        # Seed warehouse branch + slot
         branch = Branch(id=warehouse_id, name="Warehouse", address="Nowhere 1", is_active=True)
         db.session.add(branch)
         slot = DeliverySlot(

@@ -6,7 +6,6 @@ from app.models.enums import Role
 def test_admin_inventory_bulk_upload(test_app, auth_header, create_user_with_role, session):
     """POST /api/v1/admin/inventory/bulk uploads CSV and returns summary envelope (אמיתי)."""
     from app.models import Branch, Product, Category
-    # יצירת branch ו־product אמיתיים
     branch = Branch(name="BulkBranch", address="BulkAddr", is_active=True)
     session.add(branch)
     category = Category(name="BulkCat")
@@ -16,7 +15,6 @@ def test_admin_inventory_bulk_upload(test_app, auth_header, create_user_with_rol
     product2 = Product(name="BulkP2", sku="BULKSKU2", price="20.00", category_id=category.id)
     session.add_all([product1, product2])
     session.commit()
-    # הכנת קובץ CSV עם id אמיתי
     csv_content = (
         f"product_id,branch_id,available_quantity,reserved_quantity\n"
         f"{product1.id},{branch.id},10,0\n"

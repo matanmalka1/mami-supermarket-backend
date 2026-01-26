@@ -4,7 +4,6 @@ import pytest
 from app.models import User, Address
 from app.models.enums import Role
 
-
 @pytest.fixture
 def customer_user(session):
     """Create a test customer user."""
@@ -21,7 +20,6 @@ def customer_user(session):
     session.add(user)
     session.commit()
     return user
-
 
 @pytest.fixture
 def customer_with_addresses(session, customer_user):

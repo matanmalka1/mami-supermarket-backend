@@ -1,10 +1,8 @@
 """Tests for set default address endpoint."""
 
-import pytest
 from app.models import User
 from app.models.enums import Role
 from tests.profile.profile_fixtures import customer_user, customer_with_addresses
-
 
 class TestSetDefaultAddress:
     """Tests for PATCH /api/v1/me/addresses/:id/default"""

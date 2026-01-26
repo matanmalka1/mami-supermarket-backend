@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.product import Product  # TODO: adjust import path
+from app.models.product import Product  
 from app.models.category import Category
 
 
@@ -76,7 +76,6 @@ def seed_products(session: Session) -> list[Product]:
             raise RuntimeError(f"Category not found: {category_name}. Seed categories first.")
         return c.id
     products_data = [
-        # Fruits & Vegetables
         ("FRU-APL-GALA-1KG", "Apples Gala 1kg", "Fruits & Vegetables", "12.90", "Fresh Gala apples (1kg)."),
         ("VEG-TOM-1KG", "Tomatoes 1kg", "Fruits & Vegetables", "9.90", "Fresh tomatoes (1kg)."),
         ("VEG-CUC-1KG", "Cucumbers 1kg", "Fruits & Vegetables", "8.50", "Fresh cucumbers (1kg)."),

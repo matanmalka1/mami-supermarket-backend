@@ -1,9 +1,6 @@
 """Aggregate exports for stock request services (employee/admin)."""
 
 from app.services.stock_requests import StockRequestEmployeeService, StockRequestReviewService
-
-# Backwards-compatible facade
-
 from app.services.stock_requests.ops_service import list_ops
 
 class StockRequestService:

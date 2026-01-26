@@ -2,6 +2,7 @@ import uuid
 from decimal import Decimal
 import pytest
 import sqlalchemy as sa
+
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Audit, Cart, CartItem, DeliverySlot
@@ -37,7 +38,6 @@ def _cart_payload(cart, *, fulfillment, branch_id, slot_id=None, addr=None):
         save_as_default=False,
     )
 
-
 def _prep_cart(session, users, product_with_inventory, qty=1, price="10.00"):
     user = users[0]
     product, inv, branch = product_with_inventory
@@ -46,6 +46,7 @@ def _prep_cart(session, users, product_with_inventory, qty=1, price="10.00"):
     session.commit()
     cart = _build_cart(session, user.id, product.id, qty=qty, price=Decimal(price))
     return user, product, inv, branch, cart
+
 def test_checkout_insufficient_stock(session, test_app, users, product_with_inventory):
     user, product, _, branch, cart = _prep_cart(session, users, product_with_inventory, qty=2)
     with pytest.raises(DomainError) as exc:

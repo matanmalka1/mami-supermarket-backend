@@ -1,10 +1,6 @@
 """Tests for admin user management endpoints."""
 
-import pytest
-from app.models import User
 from app.models.enums import Role
-
-
 
 class TestListUsers:
     def test_list_users_success(self, test_app, auth_header, create_user_with_role, session):

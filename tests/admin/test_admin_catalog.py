@@ -1,7 +1,6 @@
 """Tests for admin catalog management endpoints."""
 
-import pytest
-from app.models import User, Category, Product
+from app.models import Category, Product
 from app.models.enums import Role
 import uuid
 

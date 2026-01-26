@@ -95,7 +95,6 @@ class UserManagementService:
         if not user:
             raise DomainError("USER_NOT_FOUND", "User not found", status_code=404)
         
-        # Prevent admins from modifying their own role
         if str(user.id) == current_user_id and payload.role is not None:
             raise DomainError(
                 "CANNOT_MODIFY_SELF_ROLE",

@@ -51,14 +51,12 @@ def seed_payment_tokens(session: Session) -> list[PaymentToken]:
     created: list[PaymentToken] = []
 
     for u in users:
-        # לפני קביעת דיפולט: כבה דיפולטים אחרים של אותו משתמש (כדי לשמור 1 דיפולט)
         session.execute(
             PaymentToken.__table__.update()
             .where(PaymentToken.user_id == u.id)
             .values(is_default=False)
         )
 
-        # טוקן דמה שנראה “אמיתי”
         token = f"tok_{secrets.token_urlsafe(24)}"
         created.append(
             _ensure_payment_token(
@@ -71,7 +69,6 @@ def seed_payment_tokens(session: Session) -> list[PaymentToken]:
             )
         )
 
-        # עוד טוקן לא-דיפולט (אופציונלי, לכל משתמש שני)
         if str(u.email).endswith("@example.com"):
             token2 = f"tok_{secrets.token_urlsafe(24)}"
             created.append(

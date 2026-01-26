@@ -1,1 +1,0 @@
-"""Branches tests module."""

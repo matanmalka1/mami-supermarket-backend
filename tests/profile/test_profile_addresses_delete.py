@@ -1,10 +1,7 @@
 """Tests for address delete endpoint."""
 
-import pytest
 from app.models import User, Address
 from app.models.enums import Role
-from tests.profile.profile_fixtures import customer_user, customer_with_addresses
-
 
 class TestDeleteAddress:
     """Tests for DELETE /api/v1/me/addresses/:id"""

@@ -5,7 +5,7 @@ import random
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.stock_request import StockRequest  # TODO: adjust import path
+from app.models.stock_request import StockRequest 
 from app.models.branch import Branch
 from app.models.product import Product
 from app.models.user import User
@@ -24,7 +24,6 @@ def seed_stock_requests(session: Session, *, limit: int = 25) -> list[StockReque
     if not users:
         raise RuntimeError("No users found. Seed users first.")
 
-    # actor עדיף מנהל/אדמין; אם אין אז משתמש ראשון
     actors = [u for u in users if getattr(u, "role", None) in (Role.MANAGER, Role.ADMIN)]
     actor = actors[0] if actors else users[0]
 

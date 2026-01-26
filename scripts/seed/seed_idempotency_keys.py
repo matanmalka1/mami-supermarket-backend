@@ -10,7 +10,6 @@ from app.models.user import User
 
 
 def _hash_payload(payload: dict) -> str:
-    # hash יציב (פשוט) ל-dev
     raw = str(sorted(payload.items())).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
@@ -33,7 +32,6 @@ def _ensure_idempotency_key(
     ).scalar_one_or_none()
 
     if existing:
-        # אם כבר קיים, נעדכן רק אם ריק/שונה
         updated = False
         if existing.response_payload != response_payload:
             existing.response_payload = response_payload
@@ -63,7 +61,6 @@ def seed_idempotency_keys(session: Session) -> list[IdempotencyKey]:
 
     created: list[IdempotencyKey] = []
 
-    # לדוגמא: 1–2 בקשות “קודמות” לכל משתמש
     for u in users:
         payload1 = {"action": "create_order", "cart": "active", "currency": "ILS"}
         created.append(

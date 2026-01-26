@@ -1,5 +1,3 @@
-
-import pytest
 from datetime import time
 from app.models.enums import Role
 from app.models import Branch, DeliverySlot, Inventory, Product, Category

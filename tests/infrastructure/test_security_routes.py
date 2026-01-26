@@ -1,6 +1,3 @@
-import uuid
-
-import pytest
 from flask import json
 from flask_jwt_extended import create_access_token
 

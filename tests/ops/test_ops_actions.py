@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from app.models import Audit, Order, OrderItem, Product
+from app.models import Audit, Order, OrderItem
 from app.models.enums import FulfillmentType, OrderStatus
 
 def _create_order(session, user, product):
@@ -26,7 +26,6 @@ def _create_order(session, user, product):
     session.add(item)
     session.commit()
     return order, item
-
 
 def test_ops_map_returns_branches(client, admin_token):
     response = client.get(

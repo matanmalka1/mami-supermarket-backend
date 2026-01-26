@@ -4,7 +4,6 @@ import httpx
 from app.models.registration_otp import RegistrationOTP
 from app.services.registration_otp_service import RegistrationOTPService
 
-
 def _configure_otp_env(test_app):
     test_app.config.update(
         {
@@ -14,7 +13,6 @@ def _configure_otp_env(test_app):
             "ENABLE_REGISTRATION_OTP": True,
         }
     )
-
 
 def test_send_register_otp_sends_email(client, monkeypatch, session, test_app):
     _configure_otp_env(test_app)

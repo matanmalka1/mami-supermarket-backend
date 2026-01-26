@@ -2,7 +2,6 @@
 
 from app.models import Product
 
-
 def test_store_notifications_empty(client, customer_user, auth_header):
     response = client.get(
         "/api/v1/store/notifications", headers=auth_header(customer_user)

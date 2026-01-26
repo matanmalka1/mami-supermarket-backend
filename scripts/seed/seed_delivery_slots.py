@@ -30,7 +30,6 @@ def _ensure_delivery_slot(
     ).scalar_one_or_none()
 
     if slot:
-        # אם קיים, נוודא שהוא פעיל (אם יש soft delete)
         if hasattr(slot, "is_active") and slot.is_active is False:
             slot.is_active = True
             session.add(slot)
@@ -59,7 +58,6 @@ def seed_delivery_slots(session: Session) -> list[DeliverySlot]:
 
     created: list[DeliverySlot] = []
 
-    # משבצות זמן ריאליסטיות (חלונות של שעתיים)
     time_windows = [
         (time(8, 0), time(10, 0)),
         (time(10, 0), time(12, 0)),
@@ -70,7 +68,6 @@ def seed_delivery_slots(session: Session) -> list[DeliverySlot]:
     ]
 
     for branch in branches:
-        # כל הימים בשבוע (0=יום ראשון, 6=שבת)
         for day in range(7):
             for start, end in time_windows:
                 created.append(

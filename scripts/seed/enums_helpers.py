@@ -4,9 +4,6 @@ from app.models.enums import (
     Role,
     OrderStatus,
     FulfillmentType,
-    PickedStatus,
-    StockRequestType,
-    StockRequestStatus,
     CartStatus,
 )
 

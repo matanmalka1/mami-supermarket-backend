@@ -23,7 +23,6 @@ from app.models.enums import FulfillmentType, OrderStatus, PickedStatus, Role
 
 
 def _order_number(user_id, seq: int) -> str:
-    # מספר הזמנה קצר ויציב (ל-dev). אפשר להחליף ללוגיקה שלך.
     return f"ORD-{str(user_id)[:8].upper()}-{seq:04d}"
 
 
@@ -50,11 +49,9 @@ def seed_orders(session: Session, *, max_orders_per_customer: int = 2) -> list[O
 
     rnd = random.Random(2026)
 
-    # לקוחות בלבד
     customers = [u for u in users if getattr(u, "role", None) == Role.CUSTOMER]
     target_users = customers if customers else users
 
-    # נביא כתובות מראש
     addresses = session.execute(select(Address)).scalars().all()
     addresses_by_user = {}
     for a in addresses:
@@ -82,7 +79,6 @@ def seed_orders(session: Session, *, max_orders_per_customer: int = 2) -> list[O
                 k=1,
             )[0]
 
-            # סניף להזמנה: אם למשתמש יש default_branch_id – נשתמש בו, אחרת נבחר רנדומלי
             branch_id = getattr(u, "default_branch_id", None) or rnd.choice(branches).id
 
             order = Order(
@@ -91,12 +87,11 @@ def seed_orders(session: Session, *, max_orders_per_customer: int = 2) -> list[O
                 fulfillment_type=fulfillment,
                 status=status,
                 branch_id=branch_id,
-                total_amount=Decimal("0.00"),  # נחשב אחרי פריטים
+                total_amount=Decimal("0.00"),  
             )
             session.add(order)
-            session.flush()  # צריך order.id בשביל הילדים
+            session.flush()  
 
-            # פריטים להזמנה (2–6)
             k = rnd.randint(2, 6)
             chosen = rnd.sample(products, k=min(k, len(products)))
 
@@ -109,7 +104,7 @@ def seed_orders(session: Session, *, max_orders_per_customer: int = 2) -> list[O
 
                 item = OrderItem(
                     order_id=order.id,
-                    product_id=p.id,         # snapshot id
+                    product_id=p.id,     
                     name=p.name,
                     sku=p.sku,
                     unit_price=unit_price,
@@ -125,15 +120,12 @@ def seed_orders(session: Session, *, max_orders_per_customer: int = 2) -> list[O
             order.total_amount = total
             session.add(order)
 
-            # Details לפי fulfillment
             now = dt.datetime.utcnow()
 
             if fulfillment == FulfillmentType.DELIVERY:
-                # בוחרים slot ששייך לסניף הזה אם אפשר
                 branch_slots = [s for s in slots if s.branch_id == branch_id and getattr(s, "is_active", True)]
                 slot = rnd.choice(branch_slots) if branch_slots else rnd.choice(slots)
 
-                # כתובת של המשתמש
                 user_addrs = addresses_by_user.get(u.id, [])
                 if user_addrs:
                     a = rnd.choice(user_addrs)
@@ -141,8 +133,6 @@ def seed_orders(session: Session, *, max_orders_per_customer: int = 2) -> list[O
                 else:
                     addr_str = "Seed Address 1, Tel Aviv-Yafo, Israel, 0000000"
 
-                # זמן חלון: “מחר” לפי day_of_week של ה-slot
-                # (פשוט ל-dev; אפשר לשפר לפי תאריך אמיתי של השבוע)
                 slot_start = now + dt.timedelta(days=1)
                 slot_start = slot_start.replace(hour=slot.start_time.hour, minute=slot.start_time.minute, second=0, microsecond=0)
                 slot_end = now + dt.timedelta(days=1)
@@ -157,8 +147,7 @@ def seed_orders(session: Session, *, max_orders_per_customer: int = 2) -> list[O
                 )
                 session.add(delivery)
 
-            else:  # PICKUP
-                # חלון איסוף 2 שעות, “היום בערב”
+            else:  
                 start = (now + dt.timedelta(hours=4)).replace(minute=0, second=0, microsecond=0)
                 end = start + dt.timedelta(hours=2)
 

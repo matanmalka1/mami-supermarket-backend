@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.branch import Branch  # TODO: adjust import path to your project
+from app.models.branch import Branch  
 
 
 def _ensure_branch(session: Session, *, name: str, address: str) -> Branch:
@@ -20,7 +20,6 @@ def _ensure_branch(session: Session, *, name: str, address: str) -> Branch:
     if branch:
         updated = False
 
-        # reactivate if needed (SoftDeleteMixin)
         if hasattr(branch, "is_active") and branch.is_active is False:
             branch.is_active = True
             updated = True
@@ -58,5 +57,5 @@ def seed_branches(session: Session) -> list[Branch]:
             _ensure_branch(session, name=item["name"], address=item["address"])
         )
 
-    session.flush()  # Branch IDs available for seeding inventory/delivery_slots
+    session.flush()  
     return created_or_existing

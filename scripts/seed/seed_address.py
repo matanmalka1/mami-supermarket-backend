@@ -4,8 +4,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.address import Address  # תעדכן נתיב לפי הפרויקט שלך
-# from app.models.user import User      # אם תרצה טיפוס
+from app.models.address import Address 
 
 
 def _ensure_address(
@@ -17,7 +16,6 @@ def _ensure_address(
     country: str,
     postal_code: str,
 ) -> Address:
-    """Idempotent insert: אם הכתובת כבר קיימת למשתמש – מחזיר את הקיימת."""
     existing = session.execute(
         select(Address).where(
             Address.user_id == user_id,

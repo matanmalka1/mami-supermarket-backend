@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-"""
-Main seed script for Mami Supermarket database.
-Populates all tables with realistic development data.
-
-Usage:
-    python scripts/seed.py
-"""
 from __future__ import annotations
 
 import sys
@@ -42,10 +34,6 @@ from scripts.seed.seed_idempotency_keys import seed_idempotency_keys
 
 
 def run_seed(session: Session) -> None:
-    """
-    Run all seed functions in the correct order.
-    Each function is idempotent - safe to run multiple times.
-    """
     print("🌱 Starting database seed...")
     
     # 1. Branches (must be first - needed by many other tables)

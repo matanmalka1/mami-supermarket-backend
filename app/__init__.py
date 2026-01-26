@@ -80,7 +80,6 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(admin_settings_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_users_routes.blueprint, url_prefix="/api/v1/admin/users")
     app.register_blueprint(admin_analytics_routes.blueprint, url_prefix="/api/v1/admin/analytics")
-    # Health endpoints should not be rate-limited.
     limiter.exempt(health_routes.blueprint)
 
 def _register_delivery_branch_check(app: Flask) -> None:

@@ -1,1 +1,0 @@
-"""Stock requests tests module."""

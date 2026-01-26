@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.user import User  # TODO: adjust import path
+from app.models.user import User  
 from app.models.enums import Role
 
 
@@ -17,11 +17,6 @@ def _ensure_user(
     role: Role,
     default_branch_id=None,
 ) -> User:
-    """
-    Idempotent insert/update by unique email.
-    - If exists: update fields if changed
-    - If soft-deleted: reactivate
-    """
     user = session.execute(
         select(User).where(User.email == email)
     ).scalar_one_or_none()
@@ -41,13 +36,10 @@ def _ensure_user(
             user.role = role
             updated = True
 
-        # אם כבר יש default_branch_id ואתה לא רוצה לדרוס – תגיד לי ואשנה
         if default_branch_id and user.default_branch_id != default_branch_id:
             user.default_branch_id = default_branch_id
             updated = True
 
-        # שים לב: בדרך כלל לא מעדכנים password_hash בסיד אם המשתמש כבר קיים
-        # אבל אם אתה רוצה כן – אפשר.
         if updated:
             session.add(user)
 
@@ -65,11 +57,6 @@ def _ensure_user(
 
 
 def seed_users(session: Session, *, default_branch_id, password: str = "Mami2026!") -> list[User]:
-    """
-    Seeds a realistic set of users.
-    default_branch_id: UUID של סניף קיים (מ-seed_branches)
-    password: סיסמה ברירת מחדל לכל המשתמשים (לפיתוח בלבד)
-    """
     from passlib.context import CryptContext
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     

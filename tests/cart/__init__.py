@@ -1,1 +1,0 @@
-"""Cart tests module."""

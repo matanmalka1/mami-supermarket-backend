@@ -1,5 +1,3 @@
-import pytest
-
 from app.services.audit_service import AuditQueryService, AuditService
 from app.services.payment_service import PaymentService
 from uuid import uuid4

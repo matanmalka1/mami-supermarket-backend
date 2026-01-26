@@ -5,7 +5,7 @@ import random
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.inventory import Inventory  # TODO: adjust import path
+from app.models.inventory import Inventory 
 from app.models.product import Product
 from app.models.category import Category
 from app.models.branch import Branch
@@ -27,7 +27,6 @@ def _ensure_inventory(
     ).scalar_one_or_none()
 
     if inv:
-        # ברירת מחדל: seed מעדכן כדי ליישר דאטה
         inv.available_quantity = available_quantity
         inv.reserved_quantity = reserved_quantity
         session.add(inv)
@@ -44,9 +43,6 @@ def _ensure_inventory(
 
 
 def _qty_range_for_category(category_name: str) -> tuple[int, int]:
-    """
-    טווחים ריאליסטיים לפי קטגוריה.
-    """
     c = category_name.lower()
     if "frozen" in c:
         return (5, 40)
@@ -64,14 +60,10 @@ def _qty_range_for_category(category_name: str) -> tuple[int, int]:
         return (10, 150)
     if "personal care" in c:
         return (5, 80)
-    # pantry/snacks/default
     return (10, 120)
 
 
 def seed_inventory(session: Session) -> list[Inventory]:
-    """
-    יוצר מלאי לכל שילוב של (branch, product).
-    """
     branches = session.execute(select(Branch)).scalars().all()
     products = session.execute(
         select(Product).options()
@@ -82,12 +74,11 @@ def seed_inventory(session: Session) -> list[Inventory]:
     if not products:
         raise RuntimeError("No products found. Seed products first.")
 
-    # כדי לדעת קטגוריה לכל מוצר בלי N+1 נביא גם categories למפה
     categories = session.execute(select(Category)).scalars().all()
     category_by_id = {c.id: c for c in categories}
 
     created: list[Inventory] = []
-    rnd = random.Random(42)  # קבוע כדי לקבל seed יציב
+    rnd = random.Random(42)  
 
     for b in branches:
         for p in products:
@@ -97,7 +88,6 @@ def seed_inventory(session: Session) -> list[Inventory]:
             lo, hi = _qty_range_for_category(cat_name)
             available = rnd.randint(lo, hi)
 
-            # reserved קטן יחסית לזמין
             reserved = rnd.randint(0, min(8, max(0, available // 10)))
 
             created.append(

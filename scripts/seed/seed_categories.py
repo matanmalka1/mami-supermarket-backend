@@ -4,9 +4,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.category import Category  # TODO: adjust import path
-
-
+from app.models.category import Category 
 
 def _ensure_category(session: Session, *, name: str, description: str | None, icon_slug: str) -> Category:
     cat = session.execute(

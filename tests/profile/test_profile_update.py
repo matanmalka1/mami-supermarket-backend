@@ -1,9 +1,5 @@
 """Tests for user profile update endpoints."""
 
-import pytest
-from tests.profile.profile_fixtures import customer_user
-
-
 class TestUpdatePhone:
     """Tests for PATCH /api/v1/me/phone"""
 
@@ -92,6 +88,7 @@ class TestUpdateProfile:
             assert response.status_code == 200
             data = response.get_json()["data"]
             assert data["full_name"] == customer_user.full_name
+            assert data["phone"] == customer_user.phone
 
 
 class TestMembershipTier:

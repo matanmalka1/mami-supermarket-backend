@@ -2,7 +2,6 @@
 
 from app.models.enums import Role
 
-
 def test_update_address_location_success(
     client,
     session,
