@@ -16,16 +16,22 @@ blueprint = Blueprint("branches", __name__)
 ## READ (Branches)
 @blueprint.get("/branches")
 def list_branches():
-    limit = safe_int(request.args, "limit", 50)
-    offset = safe_int(request.args, "offset", 0)
-    branches, total = BranchService.list_branches(limit, offset)
-    return jsonify(success_envelope(branches, pagination={"total": total, "limit": limit, "offset": offset}))
+    from app.schemas.branches_query import BranchesQuery
+    try:
+        params = BranchesQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    branches, total = BranchService.list_branches(params.limit, params.offset)
+    return jsonify(success_envelope(branches, pagination={"total": total, "limit": params.limit, "offset": params.offset}))
 
 
 ## READ (Delivery Slots)
 @blueprint.get("/delivery-slots")
 def list_delivery_slots():
-    day = optional_int(request.args, "dayOfWeek")
-    branch_id = optional_int(request.args, "branchId")
-    slots = BranchService.list_delivery_slots(day, branch_id)
+    from app.schemas.branches_query import DeliverySlotsQuery
+    try:
+        params = DeliverySlotsQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    slots = BranchService.list_delivery_slots(params.dayOfWeek, params.branchId)
     return jsonify(success_envelope(slots))
