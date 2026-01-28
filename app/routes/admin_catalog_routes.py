@@ -6,6 +6,7 @@ from app.schemas.catalog import CategoryAdminRequest, ProductAdminRequest, Produ
 from app.services.catalog_service import CatalogAdminService
 from app.utils.request_params import toggle_flag
 from app.utils.responses import success_envelope
+from app.schemas.admin_catalog_query import ToggleCategoryQuery
 
 blueprint = Blueprint("admin_catalog", __name__)
 
@@ -29,8 +30,11 @@ def update_category(category_id: int):
 @blueprint.patch("/categories/<int:category_id>/toggle")
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_category(category_id: int):
-    active = toggle_flag(request.args)
-    category = CatalogAdminService.toggle_category(category_id, active)
+    try:
+        params = ToggleCategoryQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    category = CatalogAdminService.toggle_category(category_id, params.active)
     return jsonify(success_envelope(category))
 
 ## CREATE (Product)
