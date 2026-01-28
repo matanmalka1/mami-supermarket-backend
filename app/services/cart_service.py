@@ -44,9 +44,10 @@ class CartService:
         
         product = CartService._validate_product(product_id)
         CartService._assert_in_stock_anywhere(product)
-        CartService._assert_in_stock_delivery_branch(product)
         cart = CartService.get_or_create_cart(user_id)
         existing = next((i for i in cart.items if i.product_id == product_id), None)
+        requested_quantity = quantity + existing.quantity if existing else quantity
+        CartService._assert_in_stock_delivery_branch(product, requested_quantity)
         if existing:
             existing.quantity += quantity
             existing.unit_price = product.price
@@ -77,7 +78,7 @@ class CartService:
         
         product = CartService._validate_product(item.product_id)
         CartService._assert_in_stock_anywhere(product)
-        CartService._assert_in_stock_delivery_branch(product)
+        CartService._assert_in_stock_delivery_branch(product, quantity)
 
         old_qty = item.quantity
         item.quantity = quantity
@@ -127,14 +128,18 @@ class CartService:
             raise DomainError("OUT_OF_STOCK_ANYWHERE", "Product is out of stock")
 
     @staticmethod
-    def _assert_in_stock_delivery_branch(product: Product) -> None:
+    def _assert_in_stock_delivery_branch(product: Product, required_quantity: int) -> None:
         branch_id = CartService._delivery_source_branch_id()
         branch_available = db.session.scalar(
             select(func.coalesce(func.sum(Inventory.available_quantity), 0))
             .where(Inventory.product_id == product.id, Inventory.branch_id == branch_id)
         )
-        if branch_available is None or branch_available <= 0:
-            raise DomainError("OUT_OF_STOCK_DELIVERY_BRANCH", "Product is out of stock in the delivery warehouse")
+        if branch_available is None or branch_available < required_quantity:
+            raise DomainError(
+                "OUT_OF_STOCK_DELIVERY_BRANCH",
+                "Product is out of stock in the delivery warehouse",
+                status_code=409,
+            )
 
     @staticmethod
     def _delivery_source_branch_id() -> int:

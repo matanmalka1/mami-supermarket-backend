@@ -21,7 +21,7 @@ class CheckoutOrderBuilder:
             total_amount=total_amount,
             fulfillment_type=payload.fulfillment_type or FulfillmentType.DELIVERY,
             status=OrderStatus.CREATED,
-            branch_id=branch_id,
+            branch_id=branch_id,  # Ensure branch_id is set from resolved branch
         )
         db.session.add(order)
         for item in cart.items:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 from sqlalchemy import select ,func
 from sqlalchemy.orm import selectinload
+from flask import current_app
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import StockRequest
@@ -96,6 +97,7 @@ class StockRequestReviewService:
                 )
                 results.append({"request_id": item.request_id, "status": res.status, "result": "ok"})
             except DomainError as exc:
+                db.session.rollback()
                 results.append(
                     {
                         "request_id": item.request_id,
@@ -103,6 +105,20 @@ class StockRequestReviewService:
                         "result": "error",
                         "error_code": exc.code,
                         "message": exc.message,
+                    }
+                )
+            except Exception as exc:
+                db.session.rollback()
+                current_app.logger.exception(
+                    "Unexpected failure reviewing stock request %s", item.request_id
+                )
+                results.append(
+                    {
+                        "request_id": item.request_id,
+                        "status": None,
+                        "result": "error",
+                        "error_code": "INTERNAL_ERROR",
+                        "message": str(exc),
                     }
                 )
         return results

@@ -33,4 +33,5 @@ class PaymentService:
                 status_code=400,
             )
 
-        return f"MOCKPAY-{token.id}-{token_hex(4).upper()}"
+        # Only return mock reference if all validations pass
+        return  f"MOCKPAY-{token.id}-{token_hex(4).upper()}"

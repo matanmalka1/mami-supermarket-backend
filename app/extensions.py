@@ -18,10 +18,10 @@ def get_rate_limit_defaults():
     limits = current_app.config.get("RATE_LIMIT_DEFAULTS", "200 per day, 50 per hour")
     return tuple(limit.strip() for limit in limits.split(",") if limit.strip())
 
-lim_defaults = get_rate_limit_defaults()
 
+# Use a lambda to fetch rate limits per-request, so config changes are picked up without restart
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=lim_defaults,
+    default_limits_getter=lambda: get_rate_limit_defaults(),
 )
 limiter.request_filter = _skip_options

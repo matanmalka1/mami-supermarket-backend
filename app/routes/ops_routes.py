@@ -125,7 +125,6 @@ def get_alerts():
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def update_order_status(order_id: int):
     payload = UpdateOrderStatusRequest.model_validate(request.get_json() or {})
-    user = getattr(g, "current_user", None)
-    actor_role = user.role if user else Role.EMPLOYEE
+    actor_role = g.current_user.role
     order = OpsOrderUpdateService.update_order_status(order_id, payload.status, current_user_id(), actor_role)
     return jsonify(success_envelope(order))

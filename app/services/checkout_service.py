@@ -15,6 +15,7 @@ from app.schemas.checkout import (
     CheckoutPreviewRequest,
     CheckoutPreviewResponse,
 )
+from app.models.payment_token import PaymentToken
 from app.services.audit_service import AuditService
 from app.services.checkout import (
     CheckoutBranchValidator,
@@ -125,7 +126,15 @@ class CheckoutService:
     def _maybe_save_default_payment_token(user_id: int, payment_token_id: int, save_as_default: bool) -> None:
         if not save_as_default:
             return
-        # Placeholder for future default-payment preference persistence.
+        db.session.execute(
+            PaymentToken.__table__.update()
+            .where(PaymentToken.user_id == user_id)
+            .values(is_default=False)
+        )
+        token = db.session.get(PaymentToken, payment_token_id)
+        if token and token.user_id == user_id:
+            token.is_default = True
+            db.session.add(token)
         AuditService.log_event(
             entity_type="payment_preferences",
             action="SET_DEFAULT",

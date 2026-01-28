@@ -56,13 +56,13 @@ def require_role(*roles: Role | str) -> Callable:
 
     return decorator
 
-def require_ownership(loader: ResourceLoader) -> Callable:
+def require_ownership(loader: ResourceLoader, allow_admin_bypass: bool = True) -> Callable:
     def decorator(view: Callable) -> Callable:
         @wraps(view)
         def wrapper(*args, **kwargs):
             verify_jwt_in_request()
             user = _current_user()
-            if user.role in {Role.MANAGER, Role.ADMIN}:
+            if allow_admin_bypass and user.role in {Role.MANAGER, Role.ADMIN}:
                 g.current_user = user
                 return view(*args, **kwargs)
 

@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm import Session
 
 from ..extensions import db
+from ..middleware.error_handler import DomainError
 from ..models import Audit
 
 class AuditService:
@@ -31,14 +32,14 @@ class AuditService:
         new_value: dict[str, object] | None = None,
         context: dict[str, object] | None = None,
     ) -> Audit:
+        if entity_id is None:
+            raise DomainError(
+                "MISSING_ENTITY_ID",
+                "Entity ID is required for audit records",
+                status_code=500,
+            )
+        resolved_entity_id = entity_id
         session: Session = db.session
-        # Audit table enforces a non-null entity_id; fall back to actor or zero
-        if entity_id is not None:
-            resolved_entity_id = entity_id
-        elif actor_user_id is not None:
-            resolved_entity_id = actor_user_id
-        else:
-            resolved_entity_id = 0
         entry = Audit(
             entity_type=entity_type,
             action=action,
