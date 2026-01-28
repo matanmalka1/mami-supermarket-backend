@@ -23,6 +23,8 @@ class DefaultModel(BaseModel):
         return value
 
     def model_dump(self, *args, **kwargs):
+        if "exclude_none" not in kwargs:
+            kwargs["exclude_none"] = False
         data = super().model_dump(*args, **kwargs)
         return {k: self._serialize_value(v) for k, v in data.items()}
 
