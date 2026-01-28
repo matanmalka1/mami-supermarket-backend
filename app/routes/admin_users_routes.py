@@ -12,6 +12,7 @@ from app.schemas.users import UpdateUserRequest
 from app.services.user_management_service import UserManagementService
 from app.utils.responses import success_envelope
 from app.utils.request_params import parse_int, parse_bool, parse_enum
+from app.schemas.admin_users_query import AdminUsersQuery
 
 blueprint = Blueprint("admin_users", __name__)
 
@@ -21,25 +22,22 @@ blueprint = Blueprint("admin_users", __name__)
 @require_role(Role.MANAGER, Role.ADMIN)
 def list_users():
     """List all users with optional filters."""
-    q = request.args.get("q")
-    role = parse_enum(request.args.get("role"), Role)
-    is_active = parse_bool(request.args.get("isActive"))
-    limit = parse_int(request.args.get("limit", "50"), default=50, max_value=200)
-    offset = parse_int(request.args.get("offset", "0"), default=0)
-    
+    try:
+        params = AdminUsersQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
     users, total = UserManagementService.list_users(
-        q=q,
-        role=role,
-        is_active=is_active,
-        limit=limit,
-        offset=offset,
+        q=params.q,
+        role=params.role,
+        is_active=params.isActive,
+        limit=params.limit,
+        offset=params.offset,
     )
-    
     return jsonify({
         "data": [user.model_dump() for user in users],
         "total": total,
-        "limit": limit,
-        "offset": offset,
+        "limit": params.limit,
+        "offset": params.offset,
     })
 
 
