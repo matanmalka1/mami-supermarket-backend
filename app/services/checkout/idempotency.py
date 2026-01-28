@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import hashlib
 import json
 from sqlalchemy import select
+
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import IdempotencyKey

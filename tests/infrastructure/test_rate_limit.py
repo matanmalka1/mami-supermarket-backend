@@ -6,7 +6,6 @@ def test_health_not_limited(test_app):
         resp = client.get("/api/v1/health")
         assert resp.status_code == 200
 
-
 def test_login_rate_limited(test_app, session, users):
     client = test_app.test_client()
     user, _ = users

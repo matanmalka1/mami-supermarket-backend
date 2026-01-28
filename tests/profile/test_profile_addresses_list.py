@@ -1,7 +1,5 @@
 """Tests for address list and create endpoints."""
 
-from tests.profile.profile_fixtures import customer_user, customer_with_addresses
-
 class TestListAddresses:
     """Tests for GET /api/v1/me/addresses"""
 

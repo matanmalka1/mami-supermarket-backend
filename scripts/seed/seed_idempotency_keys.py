@@ -5,7 +5,7 @@ import hashlib
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.idempotency_key import IdempotencyKey  # TODO: adjust import path
+from app.models.idempotency_key import IdempotencyKey 
 from app.models.user import User
 
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Order

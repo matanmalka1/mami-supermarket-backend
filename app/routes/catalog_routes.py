@@ -5,7 +5,7 @@ from __future__ import annotations
 # PUBLIC: All endpoints in this file are intentionally unauthenticated for catalog browsing.
 from flask import Blueprint, jsonify, request
 
-from app.services.catalog_service import CatalogQueryService
+from app.services.catalog import CatalogQueryService
 from app.utils.request_params import optional_int, safe_int
 from app.utils.responses import success_envelope 
 from app.schemas.query_params import ProductSearchQuery

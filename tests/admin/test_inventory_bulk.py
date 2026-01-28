@@ -1,5 +1,4 @@
 import io
-import pytest
 from app.models.enums import Role
 
 

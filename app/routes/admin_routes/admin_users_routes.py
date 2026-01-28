@@ -11,7 +11,7 @@ from app.models.enums import Role
 from app.schemas.users import UpdateUserRequest
 from app.services.user_management_service import UserManagementService
 from app.utils.responses import success_envelope
-from app.utils.request_params import parse_int, parse_bool, parse_enum
+from app.utils.request_params import parse_bool
 from app.schemas.admin_branches_query import AdminUsersQuery
 
 blueprint = Blueprint("admin_users", __name__)

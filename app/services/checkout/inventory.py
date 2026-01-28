@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from sqlalchemy import select
+
 from app.extensions import db
 from app.models import Inventory
 from app.schemas.checkout import MissingItem

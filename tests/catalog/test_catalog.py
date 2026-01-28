@@ -1,7 +1,7 @@
 import pytest
 
 from app.middleware.error_handler import DomainError
-from app.services.catalog_service import CatalogAdminService, CatalogQueryService
+from app.services.catalog import CatalogAdminService, CatalogQueryService
 
 
 def test_product_toggle_disables_access(session):

@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from decimal import Decimal
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
+
 from ..extensions import db
 from ..middleware.error_handler import DomainError
 from ..models import Cart, CartItem, Inventory, Product

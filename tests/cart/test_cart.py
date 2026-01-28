@@ -4,7 +4,6 @@ from app.middleware.error_handler import DomainError
 from app.models import Category, Product
 from app.services.cart_service import CartService
 
-
 def test_cart_add_update_delete(session, users, product_with_inventory):
     user, _ = users
     product, _, _ = product_with_inventory
@@ -17,7 +16,6 @@ def test_cart_add_update_delete(session, users, product_with_inventory):
 
     cleared = CartService.delete_item(user.id, cart_id, item_id)
     assert cleared.items == []
-
 
 def test_cart_add_fails_when_out_of_stock(session, users):
     user, _ = users

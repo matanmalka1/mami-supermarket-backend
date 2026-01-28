@@ -1,16 +1,13 @@
 """Storefront endpoints."""
 
-
 # PUBLIC: The /shipping-info endpoint is intentionally unauthenticated for public access.
-from flask import Blueprint, jsonify ,request
+from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 
 from app.schemas.store import WishlistRequest
 from app.services.store import WishlistService
 from app.utils.request_utils import current_user_id, parse_json_or_400
-from app.utils.responses import success_envelope ,error_envelope
-
-from app.schemas.store import WishlistQuery
+from app.utils.responses import success_envelope 
 
 blueprint = Blueprint("store", __name__)
 

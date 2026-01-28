@@ -1,9 +1,6 @@
 """Tests for public branches endpoints."""
 
-import pytest
-from app.models import Branch, DeliverySlot
-from datetime import time
-
+from app.models import Branch
 
 class TestListBranches:
     """Tests for GET /api/v1/branches"""

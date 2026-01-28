@@ -5,7 +5,6 @@ from app.middleware.error_handler import DomainError
 
 BREVO_SEND_URL = "https://api.brevo.com/v3/smtp/email"
 
-
 def _resolve_brevo_template(template_key: str) -> tuple[str, int, str]:
     api_key = current_app.config.get("BREVO_API_KEY")
     template_id = current_app.config.get(template_key)
@@ -17,7 +16,6 @@ def _resolve_brevo_template(template_key: str) -> tuple[str, int, str]:
     except (TypeError, ValueError) as exc:
         raise DomainError("EMAIL_CONFIG_INVALID", "Email template id is invalid") from exc
     return api_key, template_id_int, sender_email
-
 
 def _send_template_email(
     api_key: str,

@@ -5,7 +5,7 @@ from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Branch, DeliverySlot
 from app.models.enums import FulfillmentType
-from app.services.branch_service import BranchService
+from app.services.branch import BranchCoreService
 
 
 class CheckoutBranchValidator:
@@ -13,7 +13,7 @@ class CheckoutBranchValidator:
     def resolve_branch(fulfillment_type: FulfillmentType | None, branch_id: int | None) -> int:
         if fulfillment_type == FulfillmentType.DELIVERY:
             source_id = current_app.config.get("DELIVERY_SOURCE_BRANCH_ID", "")
-            branch = BranchService.ensure_delivery_source_branch_exists(source_id)
+            branch = BranchCoreService.ensure_delivery_source_branch_exists(source_id)
             return branch.id
         if branch_id:
             branch = db.session.get(Branch, branch_id)

@@ -1,6 +1,5 @@
 """Health endpoint."""
 
-
 # PUBLIC: This endpoint is intentionally unauthenticated for health checks.
 from flask import Blueprint, jsonify
 from app.utils.responses import success_envelope

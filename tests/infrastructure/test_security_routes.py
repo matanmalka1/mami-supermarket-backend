@@ -4,12 +4,10 @@ from flask_jwt_extended import create_access_token
 from app.models import User
 from app.models.enums import Role
 
-
 def _auth_header_for(app, user_id, role):
     with app.app_context():
         token = create_access_token(identity=str(user_id), additional_claims={"role": role.value})
     return {"Authorization": f"Bearer {token}"}
-
 
 def test_admin_route_requires_role(test_app, session):
     employee = User(email="emp@example.com", full_name="Emp", password_hash="x", role=Role.EMPLOYEE)

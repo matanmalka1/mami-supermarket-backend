@@ -1,6 +1,8 @@
 """Application factory and package definition for Mami Supermarket backend."""
 
-from flask import Flask
+from flask import Flask ,g, request
+
+from .services.branch import BranchCoreService
 from .config import AppConfig
 from .extensions import db, jwt, limiter
 from .middleware import register_middlewares
@@ -87,8 +89,6 @@ def _register_blueprints(app: Flask) -> None:
 
 def _register_delivery_branch_check(app: Flask) -> None:
     """Validate DELIVERY_SOURCE_BRANCH_ID exists; run once lazily."""
-    from flask import g, request
-    from .services.branch_service import BranchService
 
     @app.before_request
     def _ensure_branch():
@@ -97,7 +97,7 @@ def _register_delivery_branch_check(app: Flask) -> None:
         if getattr(g, "_delivery_branch_validated", False):
             return
         try:
-            BranchService.ensure_delivery_source_branch_exists(app.config.get("DELIVERY_SOURCE_BRANCH_ID", ""))
+            BranchCoreService.ensure_delivery_source_branch_exists(app.config.get("DELIVERY_SOURCE_BRANCH_ID", ""))
         except Exception:
             # let the global error handlers format the response
             raise

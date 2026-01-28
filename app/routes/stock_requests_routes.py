@@ -8,7 +8,7 @@ from app.middleware.auth import require_role
 from app.models.enums import Role
 
 from app.schemas.admin_branches_query import AdminStockRequestsQuery
-from app.services.stock_requests_service import StockRequestService
+from app.services.stock_requests import StockRequestEmployeeService, StockRequestReviewService
 from app.utils.request_utils import current_user_id, parse_json_or_400, parse_pagination
 from app.utils.responses import pagination_envelope, success_envelope , error_envelope
 from app.schemas.stock_requests import (
@@ -25,7 +25,7 @@ blueprint = Blueprint("stock_requests", __name__)
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def create_stock_request():
     payload = StockRequestCreateRequest.model_validate(parse_json_or_400())
-    result = StockRequestService.create_request(current_user_id(), payload)
+    result = StockRequestEmployeeService.create_request(current_user_id(), payload)
     return jsonify(success_envelope(result)), 201
 
 ## READ (My Stock Requests)
@@ -34,7 +34,7 @@ def create_stock_request():
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def list_my_requests():
     limit, offset = parse_pagination()
-    rows, total = StockRequestService.list_my(current_user_id(), limit, offset)
+    rows, total = StockRequestEmployeeService.list_my(current_user_id(), limit, offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
 
 ## READ (Admin Stock Requests)
@@ -43,7 +43,7 @@ def list_my_requests():
 @require_role(Role.MANAGER, Role.ADMIN)
 def list_admin_requests():
     params = AdminStockRequestsQuery(**request.args)
-    rows, total = StockRequestService.list_admin(params.status, params.limit, params.offset)
+    rows, total = StockRequestReviewService.list_admin(params.status, params.limit, params.offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, params.limit, params.offset)))
 
 ## READ (Admin Stock Request Detail)
@@ -52,7 +52,7 @@ def list_admin_requests():
 @require_role(Role.MANAGER, Role.ADMIN)
 def get_admin_request(request_id: int):
     """Get detailed stock request information."""
-    result = StockRequestService.get_request(request_id)
+    result = StockRequestReviewService.get_request(request_id)
     return jsonify(success_envelope(result))
 
 ## UPDATE (Review Stock Request)
@@ -61,7 +61,7 @@ def get_admin_request(request_id: int):
 @require_role(Role.MANAGER, Role.ADMIN)
 def review_request(request_id: int):
     payload = StockRequestReviewRequest.model_validate(parse_json_or_400())
-    result = StockRequestService.review(
+    result = StockRequestReviewService.review(
         request_id,
         payload.status,
         payload.approved_quantity,
@@ -76,5 +76,5 @@ def review_request(request_id: int):
 @require_role(Role.MANAGER, Role.ADMIN)
 def bulk_review():
     payload = BulkReviewRequest.model_validate(parse_json_or_400())
-    results = StockRequestService.bulk_review(payload, current_user_id())
+    results = StockRequestReviewService.bulk_review(payload, current_user_id())
     return jsonify(success_envelope({"results": results}))

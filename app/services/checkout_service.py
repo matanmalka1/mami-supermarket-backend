@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from decimal import Decimal
 import traceback
-
 from flask import current_app
 
 from app.extensions import db
@@ -17,7 +16,7 @@ from app.schemas.checkout import (
     CheckoutPreviewResponse,
 )
 from app.services.audit_service import AuditService
-from app.services.checkout_workflow_service import (
+from app.services.checkout import (
     CheckoutBranchValidator,
     CheckoutCartLoader,
     CheckoutIdempotencyManager,
@@ -45,12 +44,6 @@ class CheckoutService:
 
     @staticmethod
     def confirm(payload: CheckoutConfirmRequest, idempotency_key: str) -> tuple[CheckoutConfirmResponse, bool]:
-        """
-        Confirm checkout and create order.
-        
-        Returns:
-            (response, is_new) - is_new=True for new orders (201), False for cached (200)
-        """
         branch_id = CheckoutBranchValidator.resolve_branch(payload.fulfillment_type, payload.branch_id)
         cart = CheckoutCartLoader.load(payload.cart_id, for_update=True)
         CheckoutBranchValidator.validate_delivery_slot(payload.fulfillment_type, payload.delivery_slot_id, branch_id)

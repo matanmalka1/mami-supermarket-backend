@@ -5,7 +5,7 @@ import secrets
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.payment_token import PaymentToken  # TODO: adjust import path
+from app.models.payment_token import PaymentToken
 from app.models.user import User
 
 

@@ -4,9 +4,9 @@ from app.middleware.auth import require_role
 from flask_jwt_extended import jwt_required
 
 from app.services.inventory_service import InventoryService
-from app.services.branch_service import BranchService
+from app.services.branch import BranchCoreService, DeliverySlotService
 from app.utils.request_params import optional_int, safe_int, toggle_flag
-from app.utils.responses import success_envelope ,error_envelope
+from app.utils.responses import success_envelope 
 from app.services.inventory_bulk_service import handle_bulk_inventory_upload
 from app.schemas.admin_branches_query import ToggleBranchQuery
 from app.models.enums import Role
@@ -25,7 +25,7 @@ blueprint = Blueprint("admin_branches", __name__)
 @require_role(Role.MANAGER, Role.ADMIN)
 def create_branch():
     payload = BranchAdminRequest.model_validate(request.get_json())
-    branch = BranchService.create_branch(payload.name, payload.address)
+    branch = BranchCoreService.create_branch(payload.name, payload.address)
     return jsonify(success_envelope(branch)), 201
 
 
@@ -35,7 +35,7 @@ def create_branch():
 @require_role(Role.MANAGER, Role.ADMIN)
 def update_branch(branch_id: int):
     payload = BranchAdminRequest.model_validate(request.get_json())
-    branch = BranchService.update_branch(branch_id, payload.name, payload.address)
+    branch = BranchCoreService.update_branch(branch_id, payload.name, payload.address)
     return jsonify(success_envelope(branch))
 
 
@@ -45,7 +45,7 @@ def update_branch(branch_id: int):
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_branch(branch_id: int):
     params = ToggleBranchQuery(**request.args)
-    branch = BranchService.toggle_branch(branch_id, params.active)
+    branch = BranchCoreService.toggle_branch(branch_id, params.active)
     return jsonify(success_envelope(branch))
 
 
@@ -55,7 +55,7 @@ def toggle_branch(branch_id: int):
 @require_role(Role.MANAGER, Role.ADMIN)
 def create_delivery_slot():
     payload = DeliverySlotAdminRequest.model_validate(request.get_json())
-    slot = BranchService.create_delivery_slot(
+    slot = DeliverySlotService.create_delivery_slot(
         payload.branch_id,
         payload.day_of_week,
         payload.start_time,
@@ -70,7 +70,7 @@ def create_delivery_slot():
 @require_role(Role.MANAGER, Role.ADMIN)
 def update_delivery_slot(slot_id: int):
     payload = DeliverySlotAdminRequest.model_validate(request.get_json())
-    slot = BranchService.update_delivery_slot(
+    slot = DeliverySlotService.update_delivery_slot(
         slot_id,
         payload.day_of_week,
         payload.start_time,
@@ -85,7 +85,7 @@ def update_delivery_slot(slot_id: int):
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_delivery_slot(slot_id: int):
     active = toggle_flag(request.args)
-    slot = BranchService.toggle_delivery_slot(slot_id, active)
+    slot = DeliverySlotService.toggle_delivery_slot(slot_id, active)
     return jsonify(success_envelope(slot))
 
 
@@ -127,7 +127,7 @@ def create_inventory():
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def list_delivery_slots():
-    slots = BranchService.list_delivery_slots()
+    slots = DeliverySlotService.list_delivery_slots()
     return jsonify(success_envelope(slots))
 
 # Endpoint: POST /admin/inventory/bulk (CSV upload)

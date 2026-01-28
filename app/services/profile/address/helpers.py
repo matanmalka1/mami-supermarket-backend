@@ -12,13 +12,11 @@ from ...audit_service import AuditService
 
 ENTITY_TYPE = "address"
 
-
 def fetch_address(user_id: int, address_id: int) -> Address:
     address = db.session.query(Address).filter_by(id=address_id, user_id=user_id).first()
     if not address:
         raise DomainError("ADDRESS_NOT_FOUND", "Address not found", status_code=404)
     return address
-
 
 def commit_with_audit(
     user_id: int,

@@ -1,13 +1,12 @@
 import csv
-from flask import request
-from app.utils.responses import success_envelope
+from flask import request ,jsonify
+
+from app.extensions import db
+from app.models.inventory import Inventory
+from app.utils.responses import error_envelope, success_envelope
 
 
 def handle_bulk_inventory_upload():
-    from flask import jsonify
-    from app.extensions import db
-    from app.models.inventory import Inventory
-    from app.utils.responses import error_envelope, success_envelope
     file = request.files.get("file")
     if not file:
         return (

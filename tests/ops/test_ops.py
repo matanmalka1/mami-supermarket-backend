@@ -5,7 +5,7 @@ import pytest
 from app.middleware.error_handler import DomainError
 from app.models import Order, OrderItem
 from app.models.enums import FulfillmentType, OrderStatus, PickedStatus, Role
-from app.services.ops_service import OpsOrderService
+from app.services.ops import OpsOrderUpdateService
 
 
 def test_employee_invalid_status_transition(session, users, product_with_inventory):
@@ -32,7 +32,7 @@ def test_employee_invalid_status_transition(session, users, product_with_invento
     )
     session.commit()
     with pytest.raises(DomainError) as exc:
-        OpsOrderService.update_order_status(order.id, OrderStatus.READY.value, user.id, Role.EMPLOYEE)
+        OpsOrderUpdateService.update_order_status(order.id, OrderStatus.READY.value, user.id, Role.EMPLOYEE)
     assert exc.value.code == "INVALID_STATUS_TRANSITION"
 
 
@@ -60,5 +60,5 @@ def test_missing_items_flow_sets_missing(session, users, product_with_inventory)
         )
     )
     session.commit()
-    updated = OpsOrderService.update_order_status(order.id, OrderStatus.MISSING.value, user.id, Role.EMPLOYEE)
+    updated = OpsOrderUpdateService.update_order_status(order.id, OrderStatus.MISSING.value, user.id, Role.EMPLOYEE)
     assert updated.status == OrderStatus.MISSING

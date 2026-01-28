@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 from app.models import Order, OrderItem
-from app.models.enums import OrderStatus, PickedStatus
+from app.models.enums import PickedStatus
 from app.schemas.ops import OpsOrderResponse
 from app.schemas.orders import OrderItemResponse, OrderResponse
 

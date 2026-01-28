@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 import secrets
+
 from app.extensions import db
 from app.models.password_reset_token import PasswordResetToken
-from app.models.user import User
-from app.utils.security import hash_password, verify_password
 from app.middleware.error_handler import DomainError
 from sqlalchemy import and_
 import hashlib

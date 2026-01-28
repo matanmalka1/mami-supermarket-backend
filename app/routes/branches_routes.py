@@ -4,7 +4,7 @@ from __future__ import annotations
 
 # PUBLIC: All endpoints in this file are intentionally unauthenticated for branch and delivery slot info.
 from flask import Blueprint, jsonify, request
-from app.services.branch_service import BranchService
+from app.services.branch import BranchCoreService, DeliverySlotService
 from app.utils.responses import success_envelope 
 from app.schemas.branches import BranchesQuery , DeliverySlotsQuery
 
@@ -14,7 +14,7 @@ blueprint = Blueprint("branches", __name__)
 @blueprint.get("/branches")
 def list_branches():
     params = BranchesQuery(**request.args)
-    branches, total = BranchService.list_branches(params.limit, params.offset)
+    branches, total = BranchCoreService.list_branches(params.limit, params.offset)
     return jsonify(success_envelope(branches, pagination={"total": total, "limit": params.limit, "offset": params.offset}))
 
 
@@ -22,5 +22,5 @@ def list_branches():
 @blueprint.get("/delivery-slots")
 def list_delivery_slots():
     params = DeliverySlotsQuery(**request.args)
-    slots = BranchService.list_delivery_slots(params.dayOfWeek, params.branchId)
+    slots = DeliverySlotService.list_delivery_slots(params.dayOfWeek, params.branchId)
     return jsonify(success_envelope(slots))

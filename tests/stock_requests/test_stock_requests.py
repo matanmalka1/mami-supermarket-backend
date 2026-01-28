@@ -6,7 +6,7 @@ from app.middleware.error_handler import DomainError
 from app.models import Audit, StockRequest
 from app.models.enums import StockRequestStatus, StockRequestType
 from app.schemas.stock_requests import BulkReviewItem, BulkReviewRequest
-from app.services.stock_requests_service import StockRequestService
+from app.services.stock_requests import StockRequestReviewService
 
 
 def test_bulk_review_partial_success(session, users, product_with_inventory):
@@ -28,7 +28,7 @@ def test_bulk_review_partial_success(session, users, product_with_inventory):
             BulkReviewItem(request_id=9999, status=StockRequestStatus.APPROVED, approved_quantity=2),
         ]
     )
-    results = StockRequestService.bulk_review(payload, user.id)
+    results = StockRequestReviewService.bulk_review(payload, user.id)
     assert any(r["result"] == "ok" for r in results)
     assert any(r["result"] == "error" for r in results)
 
@@ -36,8 +36,8 @@ def test_bulk_review_partial_success(session, users, product_with_inventory):
 def test_no_audit_on_failed_review(session, users):
     user, _ = users
     with pytest.raises(DomainError):
-        StockRequestService.review(
-        request_id=9999,
+        StockRequestReviewService.review(
+            request_id=9999,
             status=StockRequestStatus.APPROVED,
             approved_quantity=1,
             rejection_reason=None,

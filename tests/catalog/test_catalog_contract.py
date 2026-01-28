@@ -1,5 +1,3 @@
-import pytest
-import json
 
 def test_category_list_includes_description(client, session):
     resp = client.get("/api/v1/catalog/categories")

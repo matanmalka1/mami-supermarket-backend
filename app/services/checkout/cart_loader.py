@@ -1,9 +1,8 @@
 from __future__ import annotations
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 from app.extensions import db
 from app.middleware.error_handler import DomainError
-from app.models import Cart, CartItem
+from app.models import Cart
 
 
 class CheckoutCartLoader:

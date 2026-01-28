@@ -1,11 +1,11 @@
 from app.schemas.branches import InventoryUpdateRequest
-from app.services.branch_service import BranchService
+from app.services.branch import BranchCoreService
 from app.services.inventory_service import InventoryService
 
 
 def test_ensure_delivery_source_branch_exists(test_app):
     with test_app.app_context():
-        branch = BranchService.ensure_delivery_source_branch_exists(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
+        branch = BranchCoreService.ensure_delivery_source_branch_exists(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
     assert branch.name == "Warehouse"
 
 
