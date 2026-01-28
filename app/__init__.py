@@ -6,10 +6,6 @@ from .extensions import db, jwt, limiter
 from .middleware import register_middlewares
 from .utils.logging_config import setup_structured_logging
 from .routes import (
-    admin_branches_routes,
-    admin_catalog_routes,
-    admin_users_routes,
-    admin_settings_routes,
     auth_routes,
     auth_otp_routes,
     branches_routes,
@@ -23,8 +19,14 @@ from .routes import (
     ops_routes,
     audit_routes,
 )
+from .routes.admin_routes import (
+    admin_analytics_routes,
+    admin_branches_routes,
+    admin_catalog_routes,
+    admin_settings_routes,
+    admin_users_routes,
+)
 from app.middleware.cors import register_cors
-from app.routes import admin_analytics_routes
 
 
 def create_app(config: AppConfig | None = None) -> Flask:
