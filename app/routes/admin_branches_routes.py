@@ -8,6 +8,7 @@ from app.services.branch_service import BranchService
 from app.utils.request_params import optional_int, safe_int, toggle_flag
 from app.utils.responses import success_envelope
 from app.services.inventory_bulk_service import handle_bulk_inventory_upload
+from app.schemas.admin_branches_query import ToggleBranchQuery
 from app.models.enums import Role
 
 from app.schemas.branches import (
@@ -43,8 +44,11 @@ def update_branch(branch_id: int):
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_branch(branch_id: int):
-    active = toggle_flag(request.args)
-    branch = BranchService.toggle_branch(branch_id, active)
+    try:
+        params = ToggleBranchQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    branch = BranchService.toggle_branch(branch_id, params.active)
     return jsonify(success_envelope(branch))
 
 
