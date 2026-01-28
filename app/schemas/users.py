@@ -6,7 +6,6 @@ from datetime import datetime
 from ..models.enums import Role
 from .common import DefaultModel
 
-
 class UserListItem(DefaultModel):
     """User list item response."""
     id: int
@@ -17,7 +16,6 @@ class UserListItem(DefaultModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
-
 
 class UserDetailResponse(DefaultModel):
     """Detailed user response."""
@@ -31,14 +29,12 @@ class UserDetailResponse(DefaultModel):
     created_at: datetime
     updated_at: datetime
 
-
 class UpdateUserRequest(DefaultModel):
     """Admin user update request."""
     role: Role | None = None
     is_active: bool | None = None
     full_name: str | None = None
     phone: str | None = None
-
 
 class UserListResponse(DefaultModel):
     """Paginated user list response."""

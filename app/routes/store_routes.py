@@ -8,7 +8,8 @@ from flask_jwt_extended import jwt_required
 from app.schemas.store import WishlistRequest
 from app.services.store import WishlistService
 from app.utils.request_utils import current_user_id, parse_json_or_400
-from app.utils.responses import success_envelope
+from app.utils.responses import success_envelope ,error_envelope
+
 from app.schemas.store import WishlistQuery
 
 blueprint = Blueprint("store", __name__)
@@ -31,7 +32,6 @@ _SHIPPING_POLICIES = [
     },
 ]
 
-
 ## READ (Notifications)
 @blueprint.get("/notifications")
 @jwt_required()
@@ -39,7 +39,6 @@ def notifications():
     """Return a placeholder empty notification feed."""
     payload = {"items": [], "unread_count": 0}
     return jsonify(success_envelope(payload))
-
 
 ## READ (Shipping Info)
 
@@ -49,7 +48,6 @@ def shipping_info():
     """Return the available shipping policies."""
     return jsonify(success_envelope({"policies": _SHIPPING_POLICIES}))
 
-
 ## READ (Wishlist)
 @blueprint.get("/wishlist")
 @jwt_required()
@@ -58,7 +56,13 @@ def wishlist():
     try:
         params = WishlistQuery(**request.args)
     except Exception as e:
-        return jsonify({"error": str(e)}), 422
+        payload = error_envelope(
+            code="VALIDATION_ERROR",
+            message="Invalid query parameters",
+            status_code=422,
+            details={"error": str(e)}
+        )
+        return jsonify(payload), 422
     items = WishlistService.list_items(current_user_id())
     return jsonify(success_envelope({"items": items}))
 
