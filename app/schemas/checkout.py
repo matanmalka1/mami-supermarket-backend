@@ -14,7 +14,7 @@ class CheckoutPreviewRequest(DefaultModel):
     fulfillment_type: FulfillmentType
     branch_id: int | None = Field(default=None, gt=0)
     delivery_slot_id: int | None = Field(default=None, gt=0)
-    address: str | None = Field(default=None, min_length=5, max_length=200, regex=r"^[\w\s\-,.א-ת]+$")
+    address: str | None = Field(default=None, min_length=5, max_length=200, pattern=r"^[\w\s\-,.א-ת]+$")
 
 class MissingItem(DefaultModel):
     product_id: int
@@ -33,7 +33,7 @@ class CheckoutConfirmRequest(DefaultModel):
     fulfillment_type: FulfillmentType | None = None
     branch_id: int | None = Field(default=None, gt=0)
     delivery_slot_id: int | None = Field(default=None, gt=0)
-    address: str | None = Field(default=None, min_length=5, max_length=200, regex=r"^[\w\s\-,.א-ת]+$")
+    address: str | None = Field(default=None, min_length=5, max_length=200, pattern=r"^[\w\s\-,.א-ת]+$")
     save_as_default: bool = False
 
 class CheckoutConfirmResponse(DefaultModel):

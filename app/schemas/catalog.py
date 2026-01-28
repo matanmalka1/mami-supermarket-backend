@@ -43,19 +43,19 @@ class AutocompleteResponse(Pagination):
     items: list[AutocompleteItem]
 
 class CategoryAdminRequest(DefaultModel):
-    name: str = Field(min_length=2, max_length=50, regex=r"^[\w\s\-א-ת]+$")
+    name: str = Field(min_length=2, max_length=50, pattern=r"^[\w\s\-א-ת]+$")
     description: str | None = Field(default=None, min_length=0, max_length=300)
 
 class ProductAdminRequest(DefaultModel):
-    name: str = Field(min_length=2, max_length=100, regex=r"^[\w\s\-א-ת]+$")
-    sku: str = Field(min_length=2, max_length=20, regex=r"^[A-Za-z0-9\-]+$")
+    name: str = Field(min_length=2, max_length=100, pattern=r"^[\w\s\-א-ת]+$")
+    sku: str = Field(min_length=2, max_length=20, pattern=r"^[A-Za-z0-9\-]+$")
     price: Decimal = Field(gt=0, le=10000)
     category_id: int = Field(gt=0)
     description: str | None = Field(default=None, min_length=0, max_length=500)
 
 class ProductUpdateRequest(DefaultModel):
-    name: str | None = Field(default=None, min_length=2, max_length=100, regex=r"^[\w\s\-א-ת]+$")
-    sku: str | None = Field(default=None, min_length=2, max_length=20, regex=r"^[A-Za-z0-9\-]+$")
+    name: str | None = Field(default=None, min_length=2, max_length=100, pattern=r"^[\w\s\-א-ת]+$")
+    sku: str | None = Field(default=None, min_length=2, max_length=20, pattern=r"^[A-Za-z0-9\-]+$")
     price: Decimal | None = Field(default=None, gt=0, le=10000)
     category_id: int | None = Field(default=None, gt=0)
     description: str | None = Field(default=None, min_length=0, max_length=500)

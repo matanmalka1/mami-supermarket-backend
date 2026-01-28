@@ -22,7 +22,6 @@ from app.services.email_service import send_password_reset_email
 
 blueprint = Blueprint("auth", __name__)
 
-
 ## READ (Current User)
 @blueprint.get("/me")
 @jwt_required()
@@ -42,7 +41,6 @@ def me():
         )
     )
 
-
 ## CREATE (Register)
 @blueprint.post("/register")
 def register():
@@ -50,7 +48,6 @@ def register():
     user = AuthService.register(payload)
     response = AuthService.build_auth_response(user)
     return jsonify(success_envelope(response.model_dump())), 201
-
 
 ## CREATE (Login)
 @blueprint.post("/login")
