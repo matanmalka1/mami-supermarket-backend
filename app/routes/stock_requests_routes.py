@@ -5,13 +5,13 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from app.middleware.auth import require_role
-from app.middleware.error_handler import DomainError
-from app.models.enums import Role, StockRequestStatus
+from app.models.enums import Role
 from app.schemas.stock_requests import (
     BulkReviewRequest,
     StockRequestCreateRequest,
     StockRequestReviewRequest,
 )
+from app.schemas.admin_stock_requests_query import AdminStockRequestsQuery
 from app.services.stock_requests_service import StockRequestService
 from app.utils.request_utils import current_user_id, parse_json_or_400, parse_pagination
 from app.utils.responses import pagination_envelope, success_envelope
@@ -41,14 +41,12 @@ def list_my_requests():
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def list_admin_requests():
-    status_val = request.args.get("status")
     try:
-        status = StockRequestStatus(status_val) if status_val else None
-    except ValueError:
-        raise DomainError("BAD_REQUEST", "Invalid status filter", status_code=400)
-    limit, offset = parse_pagination()
-    rows, total = StockRequestService.list_admin(status, limit, offset)
-    return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
+        params = AdminStockRequestsQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    rows, total = StockRequestService.list_admin(params.status, params.limit, params.offset)
+    return jsonify(success_envelope(rows, pagination_envelope(total, params.limit, params.offset)))
 
 ## READ (Admin Stock Request Detail)
 @blueprint.get("/admin/<int:request_id>")
