@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import sqlalchemy as sa
-from sqlalchemy import table, column, DateTime, Numeric, Enum, func, cast, String, select
+from sqlalchemy import table, column, DateTime, Numeric, Enum, func, cast, select
 from app.extensions import db
 from app.models.enums import OrderStatus
 
@@ -47,7 +47,7 @@ class AdminAnalyticsService:
                     'YYYY-MM-DD',
                 )
 
-        status_filter = cast(RevenueTable.c.status, String) == OrderStatus.DELIVERED.value
+        status_filter = RevenueTable.c.status == OrderStatus.DELIVERED
         q = (
             select(
                 label_expr.label("label"),

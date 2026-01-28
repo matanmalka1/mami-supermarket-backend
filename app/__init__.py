@@ -1,6 +1,6 @@
 """Application factory and package definition for Mami Supermarket backend."""
 
-from flask import Flask ,g, request
+from flask import Flask
 
 from .services.branch import BranchCoreService
 from .config import AppConfig
@@ -48,7 +48,8 @@ def create_app(config: AppConfig | None = None) -> Flask:
     register_cors(app)
     _register_blueprints(app)
     _register_options_short_circuit(app)
-    _register_delivery_branch_check(app)
+    with app.app_context():
+        BranchCoreService.ensure_delivery_source_branch_exists(app.config.get("DELIVERY_SOURCE_BRANCH_ID", ""))
 
     return app
 
@@ -86,22 +87,6 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(admin_users_routes.blueprint, url_prefix="/api/v1/admin/users")
     app.register_blueprint(admin_analytics_routes.blueprint, url_prefix="/api/v1/admin/analytics")
     limiter.exempt(health_routes.blueprint)
-
-def _register_delivery_branch_check(app: Flask) -> None:
-    """Validate DELIVERY_SOURCE_BRANCH_ID exists; run once lazily."""
-
-    @app.before_request
-    def _ensure_branch():
-        if request.path.startswith("/api/v1/health"):
-            return
-        if getattr(g, "_delivery_branch_validated", False):
-            return
-        try:
-            BranchCoreService.ensure_delivery_source_branch_exists(app.config.get("DELIVERY_SOURCE_BRANCH_ID", ""))
-        except Exception:
-            # let the global error handlers format the response
-            raise
-        g._delivery_branch_validated = True
 
 def _register_options_short_circuit(app: Flask) -> None:
     from flask import request

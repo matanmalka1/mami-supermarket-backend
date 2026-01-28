@@ -3,13 +3,13 @@ from __future__ import annotations
 import hashlib
 import json
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import IdempotencyKey
 from app.models.enums import IdempotencyStatus
 from app.schemas.checkout import CheckoutConfirmRequest, CheckoutConfirmResponse
-
 
 class CheckoutIdempotencyManager:
     @staticmethod
@@ -20,41 +20,50 @@ class CheckoutIdempotencyManager:
 
     @staticmethod
     def get_or_create_in_progress(user_id: int, key: str, request_hash: str) -> tuple[IdempotencyKey, bool]:
-        existing = db.session.execute(
+        existing = CheckoutIdempotencyManager._lock_existing(user_id, key)
+        if existing:
+            return CheckoutIdempotencyManager._handle_existing(existing, request_hash)
+
+        record = IdempotencyKey(
+            user_id=user_id,
+            key=key,
+            request_hash=request_hash,
+            status=IdempotencyStatus.IN_PROGRESS,
+        )
+        db.session.add(record)
+        try:
+            db.session.flush()
+            return record, True
+        except IntegrityError:
+            db.session.rollback()
+            existing = CheckoutIdempotencyManager._lock_existing(user_id, key)
+            if not existing:
+                raise
+            return CheckoutIdempotencyManager._handle_existing(existing, request_hash)
+
+    @staticmethod
+    def _lock_existing(user_id: int, key: str) -> IdempotencyKey | None:
+        return db.session.execute(
             select(IdempotencyKey).where(
                 IdempotencyKey.user_id == user_id,
                 IdempotencyKey.key == key,
             ).with_for_update()
         ).scalar_one_or_none()
-        
-        if not existing:
-            # Create new IN_PROGRESS record
-            record = IdempotencyKey(
-                user_id=user_id,
-                key=key,
-                request_hash=request_hash,
-                status=IdempotencyStatus.IN_PROGRESS,
-            )
-            db.session.add(record)
-            db.session.flush()  # Get the ID but don't commit yet
-            return record, True
-        
-        # Check if request hash matches
+
+    @staticmethod
+    def _handle_existing(existing: IdempotencyKey, request_hash: str) -> tuple[IdempotencyKey, bool]:
         if existing.request_hash != request_hash:
             raise DomainError(
                 "IDEMPOTENCY_KEY_REUSE_MISMATCH",
                 "Same Idempotency-Key used with different request payload",
-                status_code=409
+                status_code=409,
             )
-        
-        # Check status
         if existing.status == IdempotencyStatus.IN_PROGRESS:
             raise DomainError(
                 "IDEMPOTENCY_IN_PROGRESS",
                 "This request is already being processed",
-                status_code=409
+                status_code=409,
             )
-        
         return existing, False
 
     @staticmethod

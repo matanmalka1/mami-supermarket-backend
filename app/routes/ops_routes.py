@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from flask import Blueprint, jsonify, request, g
 from flask_jwt_extended import jwt_required
 
 from app.middleware.auth import require_role
-from app.middleware.error_handler import DomainError
-from app.models.enums import OrderStatus, Role
+from app.models.enums import Role
 from app.services.ops import OpsOrderQueryService, OpsOrderUpdateService
-from app.schemas.ops import OpsOrdersQuery
+from app.schemas.ops import (
+    OpsOrdersQuery,
+    OpsStockRequestsQuery,
+    UpdateOrderStatusRequest,
+    UpdatePickStatusRequest,
+)
 from app.services.ops.custom_ops_service import (
     create_batch_for_ops,
     get_ops_performance,
@@ -18,23 +21,10 @@ from app.services.ops.custom_ops_service import (
 )
 from app.services.stock_requests import StockRequestEmployeeService, StockRequestReviewService
 from app.schemas.stock_requests import StockRequestCreateRequest
-from app.schemas.ops import UpdatePickStatusRequest, UpdateOrderStatusRequest ,OpsStockRequestsQuery
-from app.utils.request_params import optional_int
-from app.utils.request_utils import current_user_id, parse_pagination, parse_iso_date
+from app.utils.request_utils import current_user_id, parse_pagination
 from app.utils.responses import pagination_envelope, success_envelope
 
 blueprint = Blueprint("ops", __name__)
-
-def _parse_filters() -> tuple[OrderStatus | None, datetime | None, datetime | None, int, int]:
-    status_val = request.args.get("status")
-    try:
-        status = OrderStatus(status_val) if status_val else None
-    except ValueError:
-        raise DomainError("BAD_REQUEST", "Invalid status filter", status_code=400)
-    date_from = request.args.get("dateFrom")
-    date_to = request.args.get("dateTo")
-    limit, offset = parse_pagination()
-    return status, parse_iso_date(date_from), parse_iso_date(date_to), limit, offset
 
 
 ## READ (List Orders)

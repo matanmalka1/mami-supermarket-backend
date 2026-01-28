@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from app.middleware.auth import require_role
 from flask_jwt_extended import jwt_required
 
+from app.middleware.error_handler import DomainError
 from app.services.inventory_service import InventoryService
 from app.services.branch import BranchCoreService, DeliverySlotService
 from app.utils.request_params import optional_int, safe_int, toggle_flag
@@ -45,6 +46,8 @@ def update_branch(branch_id: int):
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_branch(branch_id: int):
     params = ToggleBranchQuery(**request.args)
+    if params.active is None:
+        raise DomainError("MISSING_ACTIVE_PARAM", "Missing 'active' query parameter", status_code=400)
     branch = BranchCoreService.toggle_branch(branch_id, params.active)
     return jsonify(success_envelope(branch))
 

@@ -75,12 +75,13 @@ class CheckoutService:
         totals = CheckoutPricing.calculate(cart, payload.fulfillment_type)
         payment_ref: str | None = None
         response_payload: CheckoutConfirmResponse | None = None
+        order = None
         try:
-            payment_ref = PaymentService.charge(payload.payment_token_id, float(totals.total_amount))
             order = CheckoutOrderBuilder.create_order(cart, payload, branch_id, totals.total_amount)
             CheckoutOrderBuilder.add_fulfillment_details(order, payload, branch_id)
             inventory.decrement_inventory(cart.items, inv_map)
             CheckoutOrderBuilder.audit_creation(order, totals.total_amount)
+            payment_ref = PaymentService.charge(payload.payment_token_id, float(totals.total_amount))
             CheckoutService._maybe_save_default_payment_token(cart.user_id, payload.payment_token_id, payload.save_as_default)
 
             response_payload = CheckoutConfirmResponse(

@@ -5,7 +5,7 @@ from app.models.enums import StockRequestStatus
 from app.models.enums import Role
 
 class ToggleBranchQuery(DefaultModel):
-    active: Optional[bool] = None
+    active: bool
 
 class ToggleCategoryQuery(DefaultModel):
     active: Optional[bool] = None

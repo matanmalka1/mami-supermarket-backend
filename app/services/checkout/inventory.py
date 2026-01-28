@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 
 from app.extensions import db
+from app.middleware.error_handler import DomainError
 from app.models import Inventory
 from app.schemas.checkout import MissingItem
 from app.services.audit_service import AuditService
@@ -52,6 +53,12 @@ class CheckoutInventoryManager:
             inv_row = inv_map.get(key)
             if not inv_row:
                 continue
+            if inv_row.available_quantity < item.quantity:
+                raise DomainError(
+                    "INSUFFICIENT_STOCK",
+                    f"Not enough stock for product {item.product_id}",
+                    status_code=400,
+                )
             old_value = {
                 "available_quantity": inv_row.available_quantity,
                 "reserved_quantity": inv_row.reserved_quantity,

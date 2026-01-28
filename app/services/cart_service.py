@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from flask import current_app
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
@@ -9,6 +10,7 @@ from ..middleware.error_handler import DomainError
 from ..models import Cart, CartItem, Inventory, Product
 from ..schemas.cart import CartItemResponse, CartResponse
 from ..services.audit_service import AuditService
+from ..services.branch import BranchCoreService
 
 
 class CartService:
@@ -21,6 +23,7 @@ class CartService:
             actor_user_id=actor_user_id,
             **kwargs,
         )
+    
     @staticmethod
     def get_or_create_cart(user_id: int) -> Cart:
         cart = db.session.query(Cart).options(selectinload(Cart.items)).filter_by(user_id=user_id).first()
@@ -41,6 +44,7 @@ class CartService:
         
         product = CartService._validate_product(product_id)
         CartService._assert_in_stock_anywhere(product)
+        CartService._assert_in_stock_delivery_branch(product)
         cart = CartService.get_or_create_cart(user_id)
         existing = next((i for i in cart.items if i.product_id == product_id), None)
         if existing:
@@ -73,6 +77,7 @@ class CartService:
         
         product = CartService._validate_product(item.product_id)
         CartService._assert_in_stock_anywhere(product)
+        CartService._assert_in_stock_delivery_branch(product)
 
         old_qty = item.quantity
         item.quantity = quantity
@@ -120,6 +125,22 @@ class CartService:
         total_available = db.session.scalar(select(func.coalesce(func.sum(Inventory.available_quantity), 0)).where(Inventory.product_id == product.id))
         if total_available is None or total_available <= 0:
             raise DomainError("OUT_OF_STOCK_ANYWHERE", "Product is out of stock")
+
+    @staticmethod
+    def _assert_in_stock_delivery_branch(product: Product) -> None:
+        branch_id = CartService._delivery_source_branch_id()
+        branch_available = db.session.scalar(
+            select(func.coalesce(func.sum(Inventory.available_quantity), 0))
+            .where(Inventory.product_id == product.id, Inventory.branch_id == branch_id)
+        )
+        if branch_available is None or branch_available <= 0:
+            raise DomainError("OUT_OF_STOCK_DELIVERY_BRANCH", "Product is out of stock in the delivery warehouse")
+
+    @staticmethod
+    def _delivery_source_branch_id() -> int:
+        source_id = current_app.config.get("DELIVERY_SOURCE_BRANCH_ID", "")
+        branch = BranchCoreService.ensure_delivery_source_branch_exists(source_id)
+        return branch.id
         
     @staticmethod
     def _get_cart_for_user(cart_id: int, user_id: int) -> Cart:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from app.middleware.auth import require_role
 from app.models.enums import Role
 from app.schemas.catalog import CategoryAdminRequest, ProductAdminRequest, ProductUpdateRequest
@@ -12,6 +13,7 @@ blueprint = Blueprint("admin_catalog", __name__)
 
 ## CREATE (Category)
 @blueprint.post("/categories")
+@jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def create_category():
     payload = CategoryAdminRequest.model_validate(request.get_json())
@@ -20,6 +22,7 @@ def create_category():
 
 ## UPDATE (Category)
 @blueprint.patch("/categories/<int:category_id>")
+@jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def update_category(category_id: int):
     payload = CategoryAdminRequest.model_validate(request.get_json())
@@ -28,6 +31,7 @@ def update_category(category_id: int):
 
 ## TOGGLE ACTIVE (Category)
 @blueprint.patch("/categories/<int:category_id>/toggle")
+@jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_category(category_id: int):
     params = ToggleCategoryQuery(**request.args)
@@ -36,6 +40,7 @@ def toggle_category(category_id: int):
 
 ## CREATE (Product)
 @blueprint.post("/products")
+@jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def create_product():
     payload = ProductAdminRequest.model_validate(request.get_json())
@@ -50,6 +55,7 @@ def create_product():
 
 ## UPDATE (Product)
 @blueprint.patch("/products/<int:product_id>")
+@jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def update_product(product_id: int):
     payload = ProductUpdateRequest.model_validate(request.get_json())
@@ -65,6 +71,7 @@ def update_product(product_id: int):
 
 ## TOGGLE ACTIVE (Product)
 @blueprint.patch("/products/<int:product_id>/toggle")
+@jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_product(product_id: int):
     active = toggle_flag(request.args)
