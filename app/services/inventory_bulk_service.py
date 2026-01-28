@@ -7,11 +7,19 @@ def handle_bulk_inventory_upload():
     from flask import jsonify
     from app.extensions import db
     from app.models.inventory import Inventory
-    from app.middleware.error_handler import DomainError
     from app.utils.responses import error_envelope, success_envelope
     file = request.files.get("file")
     if not file:
-        return jsonify(error_envelope("NO_FILE", "No file uploaded")), 400
+        return (
+            jsonify(
+                error_envelope(
+                    "NO_FILE",
+                    "Please attach a CSV file before uploading inventory.",
+                    status_code=400,
+                ),
+            ),
+            400,
+        )
     reader = csv.DictReader(file.stream.read().decode("utf-8").splitlines())
     processed = []
     success_count = 0

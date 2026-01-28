@@ -6,7 +6,6 @@ from flask import g, request
 
 REQUEST_ID_HEADER = "X-Request-Id"
 
-
 def register_request_id(app) -> None:
     """Ensure every request has a correlative identifier."""
 

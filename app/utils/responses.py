@@ -27,11 +27,18 @@ def success_envelope(data: Any, meta: Mapping[str, Any] | None = None, paginatio
         response["meta"] = _serialize(meta)
     return response
 
-def error_envelope(code: str, message: str, details: Mapping[str, Any] | None = None) -> dict[str, Any]:
+def error_envelope(
+    code: str,
+    message: str,
+    *,
+    status_code: int = 500,
+    details: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     return {
         "error": {
             "code": code,
             "message": message,
+            "status_code": status_code,
             "details": _serialize(details or {}),
         }
     }

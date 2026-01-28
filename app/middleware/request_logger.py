@@ -30,6 +30,5 @@ def register_request_logger(app) -> None:
                 },
             )
         except Exception:
-            # Avoid breaking responses due to logging errors.
             app.logger.exception("request_log_failed")
         return response

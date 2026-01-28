@@ -5,7 +5,6 @@ from __future__ import annotations
 from flask_cors import CORS
 from app.middleware.error_handler import DomainError
 
-
 def register_cors(app) -> None:
     allowed = (app.config.get("CORS_ALLOWED_ORIGINS") or "").strip()
     if allowed == "*" and app.config.get("ENV") == "production":
