@@ -3,7 +3,8 @@
 
 Backend service for the Mami Supermarket project. Provides RESTful APIs for inventory, orders, users, and more.
 
-**FastAPI + PostgreSQL · Real Inventory · Multi-Branch · Tokenized Payments · Audit Trail**
+
+**Flask + PostgreSQL · Real Inventory · Multi-Branch · Tokenized Payments · Audit Trail**
 
 
 ## Table of Contents
@@ -74,20 +75,40 @@ mami-supermarket-backend/
 ├── app/
 │   ├── __init__.py             # App factory
 │   ├── config.py               # Configuration classes
-│   ├── constants.py            # App-wide constants
 │   ├── extensions.py           # db, jwt, etc.
 │   ├── middleware/             # Request/response middleware
 │   ├── models/                 # SQLAlchemy models
 │   ├── routes/                 # Flask Blueprints
 │   ├── schemas/                # Pydantic DTOs
-│   ├── services/               # Business logic
+│   ├── services/               # Business logic (modular, by domain)
+│   │   ├── branch/
+│   │   ├── catalog/
+│   │   ├── ops/
+│   │   ├── profile/
+│   │   ├── stock_requests/
+│   │   ├── store/
+│   │   └── ... (other service files)
 │   └── utils/                  # Helpers
 ├── scripts/
 │   ├── gunicorn.sh             # Production server script
-│   ├── seed.py                 # Database seeding
-│   └── seed/                   # Seed data helpers
+│   └── seed/
+│       ├── seed.py             # (modular seed orchestrator, not run 
+│       ├── seed_branches.py    # Seed helpers (per entity)
+│       ├── ...                 # More seed helpers
 ├── tests/                      # Pytest test suites
-├── docs/                       # Documentation
+│   ├── admin/
+│   ├── auth/
+│   ├── branches/
+│   ├── cart/
+│   ├── catalog/
+│   ├── checkout/
+│   ├── infrastructure/
+│   ├── ops/
+│   ├── orders/
+│   ├── profile/
+│   ├── stock_requests/
+│   ├── store/
+│   └── conftest.py
 ├── agents.md                   # Project agents & rules
 ├── alembic.ini                 # Alembic configuration
 ├── pyproject.toml              # Project metadata & ruff config
@@ -97,7 +118,8 @@ mami-supermarket-backend/
 ├── run.py                      # Development server entry
 ├── TODO.md                     # Project tasks
 ├── wsgi.py                     # Production WSGI entry
-└── .env.example                # Environment template
+├── .env.example                # Environment template
+└── .env                        # (gitignored, local env)
 ```
 
 ## Main Features
@@ -164,7 +186,7 @@ cp .env.example .env
 alembic upgrade head
 
 # 7. Seed warehouse + delivery slots (dev)
-python scripts/seed.py
+python scripts/seed.py  # (main script, do not run scripts/seed/seed.py directly)
 
 # 8. Run development server
 python run.py
@@ -219,6 +241,7 @@ User → Address → PaymentToken
 ```
 
 ---
+
 For more, see the `docs/` folder and `TODO.md`. For questions, contact the maintainers.
 
 Also:
