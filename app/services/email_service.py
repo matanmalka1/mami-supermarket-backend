@@ -67,4 +67,14 @@ def send_password_reset_email(to_email: str, reset_url: str) -> None:
 
 def send_register_otp_email(to_email: str, otp_code: str) -> None:
     api_key, template_id, sender_email = _resolve_brevo_template("BREVO_REGISTER_OTP_ID")
-    _send_template_email(api_key, template_id, sender_email, to_email, {"otp_code": otp_code})
+    _send_template_email(
+        api_key,
+        template_id,
+        sender_email,
+        to_email,
+        {
+            "otp_code": otp_code,
+            "code": otp_code,
+            "verification_code": otp_code,
+        },
+    )
