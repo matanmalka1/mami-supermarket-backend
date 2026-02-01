@@ -5,6 +5,7 @@ from __future__ import annotations
 from flask import Blueprint, current_app, jsonify, request
 
 from app.middleware.error_handler import DomainError
+from app.extensions import limiter
 from app.schemas.auth import VerifyRegisterOTPRequest
 from app.services.registration_otp_service import RegistrationOTPService
 from app.utils.responses import success_envelope
@@ -26,6 +27,7 @@ def _ensure_otp_enabled():
 
 ## CREATE (Send Register OTP)
 @blueprint.post("/register/send-otp")
+@limiter.limit("3 per minute")  
 def send_register_otp():
     _ensure_otp_enabled()
     payload = request.get_json() or {}
@@ -42,6 +44,7 @@ def send_register_otp():
 
 ## CREATE (Verify Register OTP)
 @blueprint.post("/register/verify-otp")
+@limiter.limit("10 per minute")  # Prevent brute force attacks on OTP codes
 def verify_register_otp():
     _ensure_otp_enabled()
     payload = VerifyRegisterOTPRequest.model_validate(request.get_json() or {})
