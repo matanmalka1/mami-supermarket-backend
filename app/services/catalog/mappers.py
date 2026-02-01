@@ -36,9 +36,13 @@ def matches_stock(product: Product, branch_id: int | None, desired: bool) -> boo
 def to_product_response(product: Product, branch_id: int | None) -> ProductResponse:
     load_inventory(product)
     branch_available: bool | None = None
+    branch_available_quantity: int | None = None
+    row = None
     if branch_id:
         row = next((i for i in product.inventory if i.branch_id == branch_id), None)
         branch_available = bool(row and row.available_quantity > 0)
+        branch_available_quantity = row.available_quantity if row else 0
+    total_available = sum(i.available_quantity for i in product.inventory)
     return ProductResponse(
         id=product.id,
         name=product.name,
@@ -55,6 +59,8 @@ def to_product_response(product: Product, branch_id: int | None) -> ProductRespo
         is_active=product.is_active,
         in_stock_anywhere=any(i.available_quantity > 0 for i in product.inventory),
         in_stock_for_branch=branch_available,
+        available_quantity=total_available,
+        branch_available_quantity=branch_available_quantity,
     )
 
 

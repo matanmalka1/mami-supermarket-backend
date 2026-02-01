@@ -27,6 +27,8 @@ class ProductResponse(DefaultModel):
     is_active: bool
     in_stock_anywhere: bool
     in_stock_for_branch: bool | None = None
+    available_quantity: int = Field(ge=0, default=0)
+    branch_available_quantity: int | None = Field(default=None, ge=0)
 
 class FeaturedProductsResponse(DefaultModel):
     items: list[ProductResponse]

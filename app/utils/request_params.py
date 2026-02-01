@@ -27,18 +27,6 @@ def optional_int(args, name: str) -> int | None:
     except ValueError:
         return None
 
-def safe_bool(value: str | None) -> bool | None:
-    if value is None:
-        return None
-    truthy = {"1", "true", "yes"}
-    falsy = {"0", "false", "no"}
-    lowered = value.lower()
-    if lowered in truthy:
-        return True
-    if lowered in falsy:
-        return False
-    return None
-
 def parse_bool(value: str | None) -> bool | None:
     """Parse boolean from query parameter."""
     if value is None:
