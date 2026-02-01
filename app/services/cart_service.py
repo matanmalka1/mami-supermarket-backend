@@ -55,6 +55,12 @@ class CartService:
 
         CartService._audit(
             cart.id, "ADD_ITEM", user_id,
+            new_value={"product_id": str(product_id), "quantity": quantity}
+        )
+        return helpers.to_response(helpers.reload_cart(cart.id))
+
+    @staticmethod
+    def update_item(user_id: int, cart_id: int, item_id: int, quantity: int) -> CartResponse:
         """Update cart item quantity."""
         if quantity <= 0:
             raise DomainError("INVALID_QUANTITY", "Quantity must be positive")
@@ -79,17 +85,10 @@ class CartService:
             old_value={"item_id": str(item_id), "quantity": old_qty},
             new_value={"item_id": str(item_id), "quantity": quantity},
         )
-        return helpers.to_response(helpers.
-            "UPDATE_ITEM",
-            user_id,
-            old_value={"item_id": str(item_id), "quantity": old_qty},
-            new_value={"item_id": str(item_id), "quantity": quantity},
-        )
-        return CartService._to_response(CartService._reload_cart(cart.id))
+        return helpers.to_response(helpers.reload_cart(cart.id))
     
     @staticmethod
     def delete_item(user_id: int, cart_id: int, item_id: int) -> CartResponse:
-        cart = CartService._get_cart_for_user(cart_id, user_id)
         """Delete cart item."""
         cart = CartService._get_cart_for_user(cart_id, user_id)
         item = db.session.get(CartItem, item_id)
