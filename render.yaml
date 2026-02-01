@@ -40,5 +40,5 @@ databases:
   - name: mami-supermarket-db
     plan: free
     ipAllowList:
-      - cidr: 109.186.45.209/32
+      - ip: 109.186.45.209  
         description: Home Office
