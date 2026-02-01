@@ -17,7 +17,6 @@ services:
     buildFilter:
       paths: ["mami-supermarket-backend/**"]
     repo: https://github.com/matanmalka1/mami-supermarket-backend.git
-    rootDir: mami-supermarket-backend
 
   - type: web 
     name: mami-supermarket-frontend
@@ -34,7 +33,6 @@ services:
     buildFilter:
       paths: ["mami-supermarket-frontend/**"]
     repo: https://github.com/matanmalka1/mami-supermarket-frontend.git
-    rootDir: mami-supermarket-frontend
 
 databases:
   - name: mami-supermarket-db
