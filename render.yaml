@@ -12,7 +12,7 @@ services:
           property: connectionString
       - key: PYTHON_VERSION
         value: 3.10.0
-    healthCheckPath: /health
+    healthCheckPath: /api/v1/health
     autoDeploy: true
     buildFilter:
       paths: ["mami-supermarket-backend/**"]
@@ -25,11 +25,13 @@ services:
     staticPublishPath: dist
     
     envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: mami-supermarket-backend
-          property: host
+      - key: VITE_API_BASE_URL
+        value: https://mami-supermarket-backend.onrender.com/api/v1
+    
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     buildFilter:
       paths: ["mami-supermarket-frontend/**"]
     repo: https://github.com/matanmalka1/mami-supermarket-frontend.git
