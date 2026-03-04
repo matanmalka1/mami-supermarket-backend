@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
+from app.models.payment_token import PaymentToken
+from app.extensions import db
 from app.schemas.profile import (
     AddressRequest,
     AddressUpdateRequest,
@@ -88,6 +90,33 @@ def delete_address(address_id: int):
     user_id = current_user_id()
     result = AddressService.delete_address(user_id, address_id)
     return jsonify(success_envelope(result))
+
+
+## CREATE (Payment Token)
+@blueprint.post("/payment-tokens")
+@jwt_required()
+def create_payment_token():
+    """Create a mock payment token from submitted card details.
+
+    Card data is accepted for UX purposes only — no real processing occurs.
+    The token is stored as a 'mockpay' provider record linked to the user.
+    """
+    user_id = current_user_id()
+    body = parse_json_or_400()
+    card_number: str = str(body.get("card_number", "")).replace("-", "").replace(" ", "")
+    last4 = card_number[-4:] if len(card_number) >= 4 else "0000"
+
+    token = PaymentToken(
+        user_id=user_id,
+        provider="mockpay",
+        provider_token=f"mock-{last4}",
+        last4=last4,
+        is_default=False,
+        is_active=True,
+    )
+    db.session.add(token)
+    db.session.commit()
+    return jsonify(success_envelope({"payment_token_id": token.id})), 201
 
 
 ## UPDATE (Default Address)
