@@ -59,6 +59,8 @@ def _register_extensions(app: Flask) -> None:
     expires_minutes = app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 240)
     app.config.setdefault("JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=expires_minutes))
     app.config.setdefault("JWT_REFRESH_TOKEN_EXPIRES", timedelta(days=30))
+    app.config.setdefault("JWT_BLACKLIST_ENABLED", True)
+    app.config.setdefault("JWT_BLACKLIST_TOKEN_CHECKS", ["access"])
 
     db.init_app(app)
     jwt.init_app(app)

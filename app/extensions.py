@@ -10,6 +10,16 @@ db = SQLAlchemy()
 jwt = JWTManager()
 
 
+@jwt.token_in_blocklist_loader
+def _check_token_in_blocklist(_jwt_header, jwt_data: dict) -> bool:
+    from .models.token_blocklist import TokenBlocklist
+
+    jti = jwt_data.get("jti")
+    if not jti:
+        return False
+    return db.session.query(TokenBlocklist).filter_by(jti=jti).first() is not None
+
+
 def _skip_options() -> bool:
     return request.method == "OPTIONS"
 

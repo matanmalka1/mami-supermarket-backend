@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from flask import current_app
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt
 from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..middleware.error_handler import DomainError
 from ..models import User
+from ..models.token_blocklist import TokenBlocklist
 from ..schemas.auth import AuthResponse, RegisterRequest, UserResponse
 from ..utils.security import hash_password, verify_password
 
@@ -72,6 +73,13 @@ class AuthService:
 
         user.password_hash = hash_password(new_password)
         session.add(user)
+
+        # Revoke the current access token so it cannot be reused after password change.
+        jwt_data = get_jwt()
+        jti = jwt_data.get("jti")
+        if jti:
+            session.add(TokenBlocklist(jti=jti, revoked_at=datetime.now(timezone.utc)))
+
         session.commit()
 
     @staticmethod
@@ -86,7 +94,7 @@ class AuthService:
     def build_auth_response(user: User) -> AuthResponse:
         access_expires = current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES")
         expires_delta = access_expires if isinstance(access_expires, timedelta) else timedelta(minutes=15)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         additional_claims = {
             "role": user.role.value,
