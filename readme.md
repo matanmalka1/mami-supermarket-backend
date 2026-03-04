@@ -386,7 +386,7 @@ Create a `.env` file in the project root with the following variables:
 | `BREVO_REGISTER_OTP_ID`            | No         | -                          | Brevo template ID for registration OTP emails                                        |
 | `ENABLE_REGISTRATION_OTP`          | No         | `false`                    | Enable OTP verification during registration (`true`/`false`)                         |
 | `APP_ENV`                          | No         | `production`               | Environment name (`development`, `production`)                                       |
-| `RATE_LIMIT_DEFAULTS`              | No         | `200 per day, 50 per hour` | Default rate limit for API endpoints                                                 |
+| `RATE_LIMIT_DEFAULTS`              | No         | `10000 per day, 1000 per hour` | Default rate limit for API endpoints                                             |
 
 ### Security Notes
 
@@ -453,15 +453,14 @@ Initial data seeding scripts are located in `scripts/seed/`. To seed the databas
 2. Run seed scripts (if available):
 
 ```bash
-python scripts/seed/seed_initial_data.py
+python -m scripts.seed.seed
 ```
 
-Seed scripts typically create:
+Seed scripts create:
 
-- Initial admin user
-- Sample branches and delivery slots
-- Product categories
-- Sample products and inventory
+- Branches, categories, ~180 products (with product photos)
+- Inventory, users, addresses, delivery slots
+- Sample carts, orders, stock requests, and audit logs
 
 ## Local Development
 
@@ -537,7 +536,7 @@ alembic upgrade head
 4. **Seed database (optional):**
 
 ```bash
-python scripts/seed/seed_initial_data.py
+python -m scripts.seed.seed
 ```
 
 ### Run the Server
@@ -647,7 +646,7 @@ Current test coverage is documented in `tests/DB_TEST_COVERAGE.md`.
 
 The backend is designed to be deployed as a WSGI application:
 
-- **WSGI Server**: Gunicorn (configured in `scripts/gunicorn.sh`)
+- **WSGI Server**: Gunicorn (started via `start.sh`)
 - **Reverse Proxy**: Nginx (recommended) for SSL termination and static file serving
 - **Database**: Managed PostgreSQL service (AWS RDS, Azure Database, etc.)
 - **Process Manager**: systemd, Docker, or Kubernetes
@@ -698,7 +697,7 @@ gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 wsgi:app
 | Monitoring                  | Set up application monitoring (Sentry, Datadog, etc.)      |
 | Logging                     | Configure log aggregation (CloudWatch, ELK, etc.)          |
 | Backups                     | Enable automated database backups                          |
-| Health Checks               | Configure platform health check to `/api/v1/health`        |
+| Health Checks               | Configure platform health check to `/health`               |
 
 **Deployment Checklist:**
 
