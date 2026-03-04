@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from decimal import Decimal
-import traceback
 from flask import current_app
 
 from app.extensions import db
@@ -108,8 +107,6 @@ class CheckoutService:
                     entity_id=cart.id,
                     context={"reference": payment_ref, "cart_id": str(cart.id)},
                 )
-            print("CheckoutService.confirm unexpected error:", exc)
-            traceback.print_exc()
             current_app.logger.exception(
                 "Unexpected error confirming checkout for cart %s",
                 cart.id,

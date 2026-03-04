@@ -1,14 +1,26 @@
 from __future__ import annotations
 
+from sqlalchemy import select
 from ..extensions import db
 from ..middleware.error_handler import DomainError
-from ..models import Cart, CartItem
+from ..models import Cart, CartItem, Inventory
 from ..schemas.cart import CartResponse
 from ..services.audit_service import AuditService
 from .cart import helpers, validators
 
 
 class CartService:
+    @staticmethod
+    def _adjust_reserved(product_id: int, delta: int) -> None:
+        """Increment (delta > 0) or decrement (delta < 0) reserved_quantity on the delivery branch inventory row."""
+        branch_id = validators.get_delivery_source_branch_id()
+        inv = db.session.execute(
+            select(Inventory)
+            .where(Inventory.product_id == product_id, Inventory.branch_id == branch_id)
+        ).scalar_one_or_none()
+        if inv is not None:
+            inv.reserved_quantity = max(0, inv.reserved_quantity + delta)
+
     @staticmethod
     def _audit(cart_id: int, action: str, actor_user_id: int | None, **kwargs) -> None:
         AuditService.log_event(
@@ -51,6 +63,7 @@ class CartService:
                 unit_price=product.price,
             )
             db.session.add(item)
+        CartService._adjust_reserved(product_id, quantity)
         db.session.commit()
 
         CartService._audit(
@@ -78,6 +91,7 @@ class CartService:
         old_qty = item.quantity
         item.quantity = quantity
         db.session.add(item)
+        CartService._adjust_reserved(item.product_id, quantity - old_qty)
         db.session.commit()
 
         CartService._audit(
@@ -94,6 +108,7 @@ class CartService:
         item = db.session.get(CartItem, item_id)
         if not item or item.cart_id != cart.id:
             raise DomainError("NOT_FOUND", "Cart item not found", status_code=404)
+        CartService._adjust_reserved(item.product_id, -item.quantity)
         db.session.delete(item)
         CartService._audit(cart.id, "DELETE_ITEM", user_id, old_value={"item_id": str(item_id)})
         db.session.commit()
@@ -104,6 +119,7 @@ class CartService:
         """Clear all items from cart."""
         cart = CartService._get_cart_for_user(cart_id, user_id)
         for item in list(cart.items):
+            CartService._adjust_reserved(item.product_id, -item.quantity)
             db.session.delete(item)
         db.session.commit()
         CartService._audit(cart.id, "CLEAR", user_id)

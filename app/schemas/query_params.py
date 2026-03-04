@@ -9,3 +9,7 @@ class ProductSearchQuery(DefaultModel):
     min_price: Optional[float] = Field(default=None, ge=0)
     max_price: Optional[float] = Field(default=None, ge=0)
     sort: Optional[str] = Field(default=None, pattern=r"^(price|name|date)$")
+    category_id: Optional[int] = Field(default=None, ge=1)
+    branch_id: Optional[int] = Field(default=None, ge=1)
+    in_stock: Optional[bool] = None
+    organic_only: Optional[bool] = None

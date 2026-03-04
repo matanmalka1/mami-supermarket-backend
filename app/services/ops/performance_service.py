@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select ,func ,distinct
 from app.extensions import db
@@ -37,7 +37,7 @@ class OpsPerformanceService:
             select(func.count()).select_from(Order),
         ) or 0
 
-        window_start = datetime.utcnow() - timedelta(
+        window_start = datetime.now(timezone.utc) - timedelta(
             minutes=OpsPerformanceService.RECENT_PICKER_WINDOW_MINUTES,
         )
         live_picker_count = session.scalar(

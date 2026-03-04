@@ -46,7 +46,9 @@ def get_product(product_id):
 def search_products():
     params = ProductSearchQuery(**request.args)
     products, total = CatalogQueryService.search_products(
-        params.q, None, None, None, params.limit, params.offset, params.min_price, params.max_price, None, params.sort
+        params.q, params.category_id, params.in_stock, params.branch_id,
+        params.limit, params.offset, params.min_price, params.max_price,
+        params.organic_only, params.sort,
     )
     has_next = total > (params.offset + params.limit)
     meta = {"total": total, "limit": params.limit, "offset": params.offset, "has_next": has_next}

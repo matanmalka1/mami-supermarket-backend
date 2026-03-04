@@ -64,6 +64,7 @@ class CheckoutInventoryManager:
                 "reserved_quantity": inv_row.reserved_quantity,
             }
             inv_row.available_quantity -= item.quantity
+            inv_row.reserved_quantity = max(0, inv_row.reserved_quantity - item.quantity)
             db.session.add(inv_row)
             AuditService.log_event(
                 entity_type="inventory",

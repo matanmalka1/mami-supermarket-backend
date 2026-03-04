@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -48,7 +48,7 @@ class RegistrationOTPService:
             synchronize_session=False
         )
         code = f"{secrets.randbelow(9000) + 1000:04d}"
-        expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
         otp = RegistrationOTP(
             email=normalized,
             code_hash=cls._hash_code(code),
@@ -64,7 +64,7 @@ class RegistrationOTPService:
     def verify_and_consume(cls, email: str, code: str) -> None:
         normalized = cls._normalize_email(email)
         code_hash = cls._hash_code(code)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         otp = (
             db.session.query(RegistrationOTP)
             .filter(

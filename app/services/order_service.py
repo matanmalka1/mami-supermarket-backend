@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import select ,func
 from sqlalchemy.orm import selectinload
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
-from app.models import Order
+from app.models import Inventory, Order
 from app.models.enums import OrderStatus
 from app.schemas.orders import CancelOrderResponse, OrderItemResponse, OrderResponse
 from app.services.audit_service import AuditService
@@ -41,7 +41,10 @@ class OrderService:
     def cancel_order(order_id: int, user_id: int) -> CancelOrderResponse:
         session = db.session
         order = session.execute(
-            select(Order).where(Order.id == order_id).with_for_update()
+            select(Order)
+            .where(Order.id == order_id)
+            .options(selectinload(Order.items))
+            .with_for_update()
         ).scalar_one_or_none()
         if not order or order.user_id != user_id:
             raise DomainError("NOT_FOUND", "Order not found", status_code=404)
@@ -51,9 +54,27 @@ class OrderService:
                 "Order cannot be canceled in its current status",
                 status_code=409,
             )
-        canceled_at = datetime.utcnow()
+        canceled_at = datetime.now(timezone.utc)
         old_value = {"status": order.status.value}
         order.status = OrderStatus.CANCELED
+
+        # Restore inventory for each item if we know the fulfillment branch.
+        if order.branch_id:
+            product_ids = [item.product_id for item in order.items]
+            inv_rows = session.execute(
+                select(Inventory)
+                .where(
+                    Inventory.branch_id == order.branch_id,
+                    Inventory.product_id.in_(product_ids),
+                )
+                .with_for_update()
+            ).scalars().all()
+            inv_map = {row.product_id: row for row in inv_rows}
+            for item in order.items:
+                inv = inv_map.get(item.product_id)
+                if inv is not None:
+                    inv.available_quantity += item.quantity
+
         AuditService.log_event(
             entity_type="order",
             action="CANCEL",

@@ -54,10 +54,7 @@ def update_settings():
         settings.free_threshold = float(data["free_threshold"])
     
     settings.updated_by = user_id
-    
-    db.session.commit()
-    
-    # Log audit event
+
     AuditService.log_event(
         entity_type="global_settings",
         action="UPDATE",
@@ -66,5 +63,7 @@ def update_settings():
         old_value=old_values,
         new_value=settings.to_dict(),
     )
-    
+
+    db.session.commit()
+
     return jsonify(success_envelope(settings.to_dict()))

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 
 from app.extensions import db
@@ -14,7 +14,7 @@ class PasswordResetService:
     def create_token(user_id: int) -> str:
         token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-        expires_at = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_EXPIRY_MINUTES)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRY_MINUTES)
         db.session.add(PasswordResetToken(
             user_id=user_id,
             token_hash=token_hash,
@@ -26,7 +26,7 @@ class PasswordResetService:
     @staticmethod
     def verify_and_consume_token(token: str, user_id: int) -> None:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         prt = db.session.query(PasswordResetToken).filter(
             and_(
                 PasswordResetToken.user_id == user_id,
@@ -41,6 +41,6 @@ class PasswordResetService:
 
     @staticmethod
     def cleanup_expired():
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         db.session.query(PasswordResetToken).filter(PasswordResetToken.expires_at < now).delete()
         db.session.commit()

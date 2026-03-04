@@ -1,7 +1,7 @@
 """Authentication endpoints."""
 
 from flask import Blueprint, jsonify, request, current_app
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required, create_access_token
 from urllib.parse import quote
 
 from app.middleware.error_handler import DomainError
@@ -142,3 +142,17 @@ def change_password():
     user_id = get_jwt_identity()
     AuthService.change_password(user_id, payload.current_password, payload.new_password)
     return jsonify(success_envelope({"message": "Password updated"}))
+
+
+## CREATE (Refresh Access Token)
+@blueprint.post("/refresh")
+@jwt_required(refresh=True)
+def refresh():
+    """Exchange a valid refresh token for a new access token."""
+    user_id = get_jwt_identity()
+    user = AuthService.get_user(user_id)
+    if not user:
+        raise DomainError("USER_NOT_FOUND", "User not found", status_code=404)
+    additional_claims = {"role": user.role.value}
+    new_access_token = create_access_token(identity=user_id, additional_claims=additional_claims)
+    return jsonify(success_envelope({"access_token": new_access_token}))

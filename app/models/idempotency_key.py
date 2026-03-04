@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import Column, DateTime, Enum as SQLEnum, ForeignKey, Index, Integer, JSON, String, UniqueConstraint
 
@@ -32,5 +32,5 @@ class IdempotencyKey(Base, TimestampMixin):
 
     def __init__(self, **kwargs):
         if "expires_at" not in kwargs:
-            kwargs["expires_at"] = datetime.utcnow() + timedelta(hours=24)
+            kwargs["expires_at"] = datetime.now(timezone.utc) + timedelta(hours=24)
         super().__init__(**kwargs)

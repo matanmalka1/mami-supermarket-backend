@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import sqlalchemy as sa
 from sqlalchemy import table, column, DateTime, Numeric, Enum, func, cast, select
 from app.extensions import db
@@ -20,7 +20,7 @@ class AdminAnalyticsService:
         Returns:
             Dict with labels (dates) and values (revenue amounts)
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if range_ == "12m":
             start = now.replace(day=1, month=now.month, year=now.year) - timedelta(days=365)
             gran = "month"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import select , func 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm import Session
 
@@ -44,7 +44,7 @@ class AuditService:
             old_value=AuditService._serialize_for_json(old_value) if old_value else None,
             new_value=AuditService._serialize_for_json(new_value) if new_value else None,
             context=AuditService._serialize_for_json(context) if context else None,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         session.add(entry)
         session.flush()  # Flush but let caller commit

@@ -15,6 +15,7 @@ from .registration_otp import RegistrationOTP
 from .password_reset_token import PasswordResetToken
 from .stock_request import StockRequest
 from .user import User
+from .token_blocklist import TokenBlocklist
 from .wishlist_item import WishlistItem
 from .enums import (
     CartStatus,
@@ -49,6 +50,7 @@ __all__ = [
     "PasswordResetToken",
     "StockRequest",
     "User",
+    "TokenBlocklist",
     "WishlistItem",
     "CartStatus",
     "FulfillmentType",
