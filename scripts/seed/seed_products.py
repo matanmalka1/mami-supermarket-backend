@@ -4,7 +4,6 @@ from __future__ import annotations
 import random
 import re
 from decimal import Decimal
-from urllib.parse import quote
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -17,8 +16,154 @@ def _slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")[:32] or "item"
 
 
-def _img(text: str) -> str:
-    return f"https://placehold.co/600x600?text={quote(text)}"
+# Map product base names to real Unsplash photo IDs (stable CDN URLs)
+_PRODUCT_IMAGES: dict[str, str] = {
+    # Fruits & Vegetables
+    "Apples Gala":            "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=600&h=600&fit=crop",
+    "Apples Granny Smith":    "https://images.unsplash.com/photo-1576179635662-9d1983e97e1e?w=600&h=600&fit=crop",
+    "Bananas":                "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&h=600&fit=crop",
+    "Oranges":                "https://images.unsplash.com/photo-1547514701-42782101795e?w=600&h=600&fit=crop",
+    "Mandarins":              "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab12?w=600&h=600&fit=crop",
+    "Tomatoes":               "https://images.unsplash.com/photo-1546470427-e26264be0b0f?w=600&h=600&fit=crop",
+    "Cherry Tomatoes":        "https://images.unsplash.com/photo-1561136594-7f68413baa99?w=600&h=600&fit=crop",
+    "Cucumbers":              "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?w=600&h=600&fit=crop",
+    "Bell Pepper Red":        "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=600&h=600&fit=crop",
+    "Bell Pepper Yellow":     "https://images.unsplash.com/photo-1596591868231-05e808fd131d?w=600&h=600&fit=crop",
+    "Sweet Potatoes":         "https://images.unsplash.com/photo-1596097634016-b9c3b5f46571?w=600&h=600&fit=crop",
+    "Potatoes":               "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&h=600&fit=crop",
+    "Carrots":                "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600&h=600&fit=crop",
+    "Zucchini":               "https://images.unsplash.com/photo-1583687355818-f09481e4eda4?w=600&h=600&fit=crop",
+    "Eggplant":               "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=600&h=600&fit=crop",
+    "Avocado":                "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&h=600&fit=crop",
+    "Lemons":                 "https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=600&h=600&fit=crop",
+    "Iceberg Lettuce":        "https://images.unsplash.com/photo-1622205313162-be1d5712a43f?w=600&h=600&fit=crop",
+    "Romaine Lettuce":        "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&h=600&fit=crop",
+    "Parsley":                "https://images.unsplash.com/photo-1590868309235-ea34bed7bd7f?w=600&h=600&fit=crop",
+    "Cilantro":               "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600&h=600&fit=crop",
+    "Mint":                   "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=600&h=600&fit=crop",
+    # Dairy & Eggs
+    "Milk 3%":                "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=600&h=600&fit=crop",
+    "Milk 1%":                "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&h=600&fit=crop",
+    "Chocolate Milk":         "https://images.unsplash.com/photo-1576186726115-4d51596775d1?w=600&h=600&fit=crop",
+    "Greek Yogurt":           "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&h=600&fit=crop",
+    "Natural Yogurt":         "https://images.unsplash.com/photo-1571212515416-fca88bff0136?w=600&h=600&fit=crop",
+    "Cottage Cheese 5%":      "https://images.unsplash.com/photo-1631379578550-7038263db699?w=600&h=600&fit=crop",
+    "Cream Cheese":           "https://images.unsplash.com/photo-1559561853-08451507cbe7?w=600&h=600&fit=crop",
+    "Yellow Cheese Slices":   "https://images.unsplash.com/photo-1618164436241-4473940d1f5c?w=600&h=600&fit=crop",
+    "Mozzarella Cheese":      "https://images.unsplash.com/photo-1582169296194-e4d644c48063?w=600&h=600&fit=crop",
+    "Butter":                 "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&h=600&fit=crop",
+    "Whipping Cream":         "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=600&h=600&fit=crop",
+    "Eggs L":                 "https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=600&h=600&fit=crop",
+    "Eggs M":                 "https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=600&h=600&fit=crop",
+    # Meat & Fish
+    "Chicken Breast":         "https://images.unsplash.com/photo-1604503468506-a8da13d11d36?w=600&h=600&fit=crop",
+    "Chicken Thighs":         "https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600&h=600&fit=crop",
+    "Whole Chicken":          "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=600&h=600&fit=crop",
+    "Ground Beef":            "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=600&h=600&fit=crop",
+    "Beef Entrecote":         "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&h=600&fit=crop",
+    "Beef Stew Meat":         "https://images.unsplash.com/photo-1551446591-142875a901a1?w=600&h=600&fit=crop",
+    "Turkey Breast":          "https://images.unsplash.com/photo-1574672280600-4accfa5b6f98?w=600&h=600&fit=crop",
+    "Turkey Shawarma":        "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=600&h=600&fit=crop",
+    "Salmon Fillet":          "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&h=600&fit=crop",
+    "Tilapia Fillet":         "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&h=600&fit=crop",
+    "Frozen Fish Fingers":    "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=600&h=600&fit=crop",
+    # Bakery
+    "White Bread":            "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&h=600&fit=crop",
+    "Whole Wheat Bread":      "https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=600&h=600&fit=crop",
+    "Sourdough Bread":        "https://images.unsplash.com/photo-1585478259715-876acc5be8eb?w=600&h=600&fit=crop",
+    "Pita Bread":             "https://images.unsplash.com/photo-1609167830220-7164aa360951?w=600&h=600&fit=crop",
+    "Challah":                "https://images.unsplash.com/photo-1620921568790-c1cf8983a970?w=600&h=600&fit=crop",
+    "Bagel":                  "https://images.unsplash.com/photo-1585478259715-876acc5be8eb?w=600&h=600&fit=crop",
+    "Croissant":              "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&h=600&fit=crop",
+    "Chocolate Croissant":    "https://images.unsplash.com/photo-1638185762819-d741c8c10b45?w=600&h=600&fit=crop",
+    # Frozen
+    "Frozen Peas":            "https://images.unsplash.com/photo-1616501268215-2d9f58b31e58?w=600&h=600&fit=crop",
+    "Frozen Corn":            "https://images.unsplash.com/photo-1550828487-37cb5bb62d5b?w=600&h=600&fit=crop",
+    "Frozen Fries":           "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=600&h=600&fit=crop",
+    "Frozen Pizza":           "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&h=600&fit=crop",
+    "Frozen Lasagna":         "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=600&h=600&fit=crop",
+    "Ice Cream Vanilla":      "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=600&h=600&fit=crop",
+    "Ice Cream Chocolate":    "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&h=600&fit=crop",
+    # Beverages
+    "Mineral Water":          "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=600&h=600&fit=crop",
+    "Sparkling Water":        "https://images.unsplash.com/photo-1560023907-5f339617ea30?w=600&h=600&fit=crop",
+    "Cola":                   "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=600&h=600&fit=crop",
+    "Diet Cola":              "https://images.unsplash.com/photo-1606168094336-48f205ece8f5?w=600&h=600&fit=crop",
+    "Orange Juice":           "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=600&h=600&fit=crop",
+    "Apple Juice":            "https://images.unsplash.com/photo-1576673442511-7e39b6545c87?w=600&h=600&fit=crop",
+    "Iced Tea Lemon":         "https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=600&h=600&fit=crop",
+    "Energy Drink":           "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=600&h=600&fit=crop",
+    # Snacks
+    "Potato Chips Classic":   "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&h=600&fit=crop",
+    "Potato Chips BBQ":       "https://images.unsplash.com/photo-1613919113640-25732ec5e61f?w=600&h=600&fit=crop",
+    "Salted Peanuts":         "https://images.unsplash.com/photo-1567892320421-a25f4b5dd9e9?w=600&h=600&fit=crop",
+    "Cashews Roasted":        "https://images.unsplash.com/photo-1630420958456-0bd16a4e9e2b?w=600&h=600&fit=crop",
+    "Almonds Roasted":        "https://images.unsplash.com/photo-1574184864703-3487b13f0eca?w=600&h=600&fit=crop",
+    "Protein Bar":            "https://images.unsplash.com/photo-1622484212850-eb596d769edc?w=600&h=600&fit=crop",
+    "Granola Bar":            "https://images.unsplash.com/photo-1627485937980-221c88ac04f9?w=600&h=600&fit=crop",
+    # Pantry
+    "Pasta Spaghetti":        "https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=600&h=600&fit=crop",
+    "Pasta Penne":            "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600&h=600&fit=crop",
+    "Rice White":             "https://images.unsplash.com/photo-1536304993881-ff86e0c9b4da?w=600&h=600&fit=crop",
+    "Rice Basmati":           "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&h=600&fit=crop",
+    "Tuna Can":               "https://images.unsplash.com/photo-1618387222960-c3be5b8f75f7?w=600&h=600&fit=crop",
+    "Canned Corn":            "https://images.unsplash.com/photo-1601593346740-925612772716?w=600&h=600&fit=crop",
+    "Chickpeas Can":          "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?w=600&h=600&fit=crop",
+    "Tomato Sauce":           "https://images.unsplash.com/photo-1611270629569-8b357cb88da9?w=600&h=600&fit=crop",
+    "Ketchup":                "https://images.unsplash.com/photo-1553013254-e6f19ce4e11f?w=600&h=600&fit=crop",
+    "Mayonnaise":             "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=600&h=600&fit=crop",
+    "Olive Oil":              "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&h=600&fit=crop",
+    "Sugar":                  "https://images.unsplash.com/photo-1581404417462-5e4b0e3b96ee?w=600&h=600&fit=crop",
+    "Salt":                   "https://images.unsplash.com/photo-1518110925495-5fe2fda0442c?w=600&h=600&fit=crop",
+    # Breakfast
+    "Corn Flakes":            "https://images.unsplash.com/photo-1517093157656-b9eccef91cb1?w=600&h=600&fit=crop",
+    "Chocolate Cereal":       "https://images.unsplash.com/photo-1588279102819-6be7a51d6827?w=600&h=600&fit=crop",
+    "Oat Flakes":             "https://images.unsplash.com/photo-1614961233913-a5113a4a34ed?w=600&h=600&fit=crop",
+    "Chocolate Spread":       "https://images.unsplash.com/photo-1604350834939-95a9df76a906?w=600&h=600&fit=crop",
+    "Peanut Butter":          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop",
+    "Honey":                  "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&h=600&fit=crop",
+    "Strawberry Jam":         "https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=600&h=600&fit=crop",
+    # Household
+    "Toilet Paper":           "https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=600&h=600&fit=crop",
+    "Paper Towels":           "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&h=600&fit=crop",
+    "Dish Soap":              "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&h=600&fit=crop",
+    "Laundry Detergent":      "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=600&h=600&fit=crop",
+    "Fabric Softener":        "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=600&h=600&fit=crop",
+    "All Purpose Cleaner":    "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=600&h=600&fit=crop",
+    # Personal Care
+    "Shampoo":                "https://images.unsplash.com/photo-1631390163670-6fe98dac7e11?w=600&h=600&fit=crop",
+    "Conditioner":            "https://images.unsplash.com/photo-1556227702-d1e4e7b5c232?w=600&h=600&fit=crop",
+    "Body Wash":              "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&h=600&fit=crop",
+    "Hand Soap":              "https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=600&h=600&fit=crop",
+    "Soap Bars":              "https://images.unsplash.com/photo-1607006344380-b6775a0824a7?w=600&h=600&fit=crop",
+    "Toothpaste":             "https://images.unsplash.com/photo-1612594533941-3f2e1f4c6e14?w=600&h=600&fit=crop",
+    "Deodorant":              "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop",
+}
+
+# Category-level fallback images
+_CATEGORY_IMAGES: dict[str, str] = {
+    "Fruits & Vegetables": "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=600&h=600&fit=crop",
+    "Dairy & Eggs":        "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&h=600&fit=crop",
+    "Meat & Fish":         "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=600&h=600&fit=crop",
+    "Bakery":              "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&h=600&fit=crop",
+    "Frozen":              "https://images.unsplash.com/photo-1616501268215-2d9f58b31e58?w=600&h=600&fit=crop",
+    "Beverages":           "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=600&h=600&fit=crop",
+    "Snacks":              "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&h=600&fit=crop",
+    "Pantry":              "https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=600&h=600&fit=crop",
+    "Breakfast":           "https://images.unsplash.com/photo-1517093157656-b9eccef91cb1?w=600&h=600&fit=crop",
+    "Household":           "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=600&h=600&fit=crop",
+    "Personal Care":       "https://images.unsplash.com/photo-1631390163670-6fe98dac7e11?w=600&h=600&fit=crop",
+}
+
+
+def _img(text: str, cat_name: str = "") -> str:
+    # Strip value-pack suffix like " - Value Pack 2"
+    base = text.split(" - Value Pack")[0].strip()
+    return (
+        _PRODUCT_IMAGES.get(base)
+        or _CATEGORY_IMAGES.get(cat_name)
+        or f"https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=600&fit=crop"
+    )
 
 
 def _ensure_product(session: Session, *, sku: str, **fields) -> Product:
@@ -209,7 +354,7 @@ def seed_products(session: Session, *, target_count: int = 180) -> list[Product]
                 created.append(_ensure_product(
                     session, sku=sku, name=name, category_id=c.id, price=price, old_price=old_price,
                     unit=unit, nutritional_info=nutrition, is_organic=is_org, description=desc,
-                    bin_location=f"{aisle}-{i:03d}", image_url=_img(name),
+                    bin_location=f"{aisle}-{i:03d}", image_url=_img(name, cat_name),
                 ))
                 if len(created) >= target_count:
                     session.flush(); return created
